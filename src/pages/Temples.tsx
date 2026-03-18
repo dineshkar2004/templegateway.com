@@ -82,6 +82,24 @@ const Temples = () => {
 
   return (
     <Layout>
+      {/* Hero Section */}
+      <section className="relative h-[350px] flex items-center justify-center overflow-hidden" style={{ backgroundColor: '#f5f1eb' }}>
+        <div className="relative z-10 container mx-auto px-4 text-center">
+          <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
+            <span className="text-secondary font-body text-sm uppercase tracking-widest">
+              Temples
+            </span>
+            <h1 className="font-display text-5xl md:text-7xl font-bold text-foreground leading-tight">
+              Explore Sacred <span style={{ color: '#c34b22' }}>Temples</span>
+            </h1>
+            <div className="section-divider" />
+            <p className="font-body text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              Discover temples across India with detailed information and interactive maps.
+            </p>
+          </div>
+        </div>
+      </section>
+
       <section className="py-8 pt-4">
         <div className="container mx-auto px-4">
 

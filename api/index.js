@@ -280,6 +280,10 @@ app.get("/api/tours/:idOrSlug", async (req, res) => {
 
 // ---------------- START SERVER ----------------
 
-app.listen(PORT, () => {
-  console.log(`\n✅ Backend running at http://localhost:${PORT}`);
-});
+if (process.env.NODE_ENV !== "production") {
+  app.listen(PORT, () => {
+    console.log(`\n✅ Backend running at http://localhost:${PORT}`);
+  });
+}
+
+export default app;

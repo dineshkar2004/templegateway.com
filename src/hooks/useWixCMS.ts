@@ -3,8 +3,6 @@ import { useCallback } from 'react';
 import { fetchTemples, fetchTempleById, fetchTours, fetchTourById } from '@/services/wixCMS';
 import { Temple } from '@/data/temples';
 import { Tour } from '@/data/tours';
-import { temples as initialTemples } from '@/data/temples';
-import { tours as initialTours } from '@/data/tours';
 
 // Query keys for React Query
 export const queryKeys = {
@@ -29,11 +27,11 @@ export function useCMSTemples() {
         try {
           return await fetchTemples();
         } catch (err) {
-          console.warn('Failed to fetch from Wix CMS, using fallback data:', err);
-          return initialTemples;
+          console.warn('Failed to fetch from Wix CMS:', err);
+          return [];
         }
       }
-      return initialTemples;
+      return [];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
@@ -102,11 +100,11 @@ export function useCMSTours() {
         try {
           return await fetchTours();
         } catch (err) {
-          console.warn('Failed to fetch from Wix CMS, using fallback data:', err);
-          return initialTours;
+          console.warn('Failed to fetch from Wix CMS:', err);
+          return [];
         }
       }
-      return initialTours;
+      return [];
     },
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,

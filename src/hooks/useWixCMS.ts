@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
-import { fetchTemples, fetchTempleById, fetchTours, fetchTourById } from '@/services/wixCMS';
+import { fetchTemplesFromProxy as fetchTemples, fetchToursFromProxy as fetchTours } from '@/services/wixCMSProxy';
 import { Temple } from '@/data/temples';
 import { Tour } from '@/data/tours';
 
@@ -18,20 +18,16 @@ export const queryKeys = {
  */
 export function useCMSTemples() {
   const queryClient = useQueryClient();
-  const isWixConfigured = !!import.meta.env.VITE_WIX_API_KEY || import.meta.env.VITE_USE_PROXY === 'true';
 
   const { data: temples = [], isLoading, error, refetch } = useQuery({
     queryKey: queryKeys.temples,
     queryFn: async (): Promise<Temple[]> => {
-      if (isWixConfigured) {
-        try {
-          return await fetchTemples();
-        } catch (err) {
-          console.warn('Failed to fetch from Wix CMS:', err);
-          return [];
-        }
+      try {
+        return await fetchTemples();
+      } catch (err) {
+        console.warn('Failed to fetch from backend proxy:', err);
+        return [];
       }
-      return [];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
@@ -91,20 +87,16 @@ export function useCMSTemple(idOrSlug: string | number) {
  */
 export function useCMSTours() {
   const queryClient = useQueryClient();
-  const isWixConfigured = !!import.meta.env.VITE_WIX_API_KEY || import.meta.env.VITE_USE_PROXY === 'true';
 
   const { data: tours = [], isLoading, error, refetch } = useQuery({
     queryKey: queryKeys.tours,
     queryFn: async (): Promise<Tour[]> => {
-      if (isWixConfigured) {
-        try {
-          return await fetchTours();
-        } catch (err) {
-          console.warn('Failed to fetch from Wix CMS:', err);
-          return [];
-        }
+      try {
+        return await fetchTours();
+      } catch (err) {
+        console.warn('Failed to fetch from backend proxy:', err);
+        return [];
       }
-      return [];
     },
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,

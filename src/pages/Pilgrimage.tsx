@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import Layout from "@/components/layout/Layout";
 import { useCMSTours } from "@/hooks/useWixCMS";
 import { Tour } from "@/data/tours";
+import SEO from "@/components/SEO";
 
 const Pilgrimage = () => {
   const { toast } = useToast();
@@ -70,6 +71,10 @@ const Pilgrimage = () => {
 
   return (
     <Layout>
+      <SEO 
+        title="Pilgrimage Tour Packages" 
+        description="Embark on transformative spiritual journeys with our expertly crafted pilgrimage packages. Browse custom tours, book experts, and experience divine blessings across India."
+      />
       {/* Hero Section */}
       <section className="relative h-[350px] flex items-center justify-center overflow-hidden" style={{ backgroundColor: '#f5f1eb' }}>
         <div className="relative z-10 container mx-auto px-4 text-center">

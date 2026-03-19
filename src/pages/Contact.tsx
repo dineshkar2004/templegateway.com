@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { MapPin, Phone, Mail, Clock, Send } from "lucide-react";
 import { toast } from "sonner";
 import RevealOnScroll from "@/components/RevealOnScroll";
+import SEO from "@/components/SEO";
 
 const WEB3FORMS_ACCESS_KEY = "845422d9-e0cd-4752-b626-3583ba8c359a";
 
@@ -60,6 +61,10 @@ const Contact = () => {
 
   return (
     <Layout>
+      <SEO 
+        title="Contact Us" 
+        description="Get in touch with Temple Gateway. Contact us for custom pilgrimage planning, spiritual guidance, or to suggest a sacred temple for our directory."
+      />
       {/* Hero Section */}
       <section className="h-[350px] flex items-center justify-center bg-gradient-warm">
         <div className="container mx-auto px-4">

@@ -10,6 +10,7 @@ import image1 from "@/assets/img/expert-guidance.png";
 import Panchang from "@/components/Panchang";
 import VideoCarousel from "@/components/VideoCarousel";
 import RevealOnScroll from "@/components/RevealOnScroll";
+import SEO from "@/components/SEO";
 
 const Index = () => {
   const { temples } = useCMSTemples();
@@ -32,6 +33,10 @@ const Index = () => {
 
   return (
     <Layout>
+      <SEO 
+        title="Home" 
+        description="Welcome to Temple Gateway. Embark on transformative spiritual journeys to India's most sacred temples with our curated pilgrimage tours and expert spiritual guides."
+      />
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <div

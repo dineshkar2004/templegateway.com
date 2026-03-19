@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MapPin, Search, Filter, X } from "lucide-react";
+import SEO from "@/components/SEO";
 
 const Temples = () => {
   const { temples } = useCMSTemples(); // ✅ Only Wix CMS
@@ -82,6 +83,10 @@ const Temples = () => {
 
   return (
     <Layout>
+      <SEO 
+        title="Sacred Temples Directory" 
+        description="Explore our extensive directory of sacred temples across India with interactive maps. Search, filter, and discover divine heritage by deity, state, or significance."
+      />
       {/* Hero Section */}
       <section className="relative h-[350px] flex items-center justify-center overflow-hidden" style={{ backgroundColor: '#f5f1eb' }}>
         <div className="relative z-10 container mx-auto px-4 text-center">

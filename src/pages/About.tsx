@@ -1,10 +1,15 @@
 import Layout from "@/components/layout/Layout";
 import { Heart, Target, Eye, Users, Phone, Pin, Sofa } from "lucide-react";
 import RevealOnScroll from "@/components/RevealOnScroll";
+import SEO from "@/components/SEO";
 
 const About = () => {
   return (
     <Layout>
+      <SEO 
+        title="About Us" 
+        description="Temple Gateway was founded to make India's rich spiritual heritage accessible. Discover our story, mission, and dedication to connecting spiritual seekers with sacred spaces."
+      />
       {/* Hero Section */}
       <section className="h-[350px] flex items-center justify-center bg-gradient-warm">
         <div className="container mx-auto px-4">

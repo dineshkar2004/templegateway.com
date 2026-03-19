@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Layout from "@/components/layout/Layout";
 import { useCMSTemple } from "@/hooks/useWixCMS";
+import SEO from "@/components/SEO";
 
 const TempleDetail = () => {
     const { id } = useParams<{ id: string }>();
@@ -48,6 +49,11 @@ const TempleDetail = () => {
 
     return (
         <Layout>
+            <SEO 
+                title={temple.name} 
+                description={temple.famousFor || `Discover the spiritual significance, history, and timings of ${temple.name}.`} 
+                ogImage={temple.imageUrl || undefined}
+            />
             {/* Hero Section */}
             <section
                 className={`relative pt-32 pb-24 lg:pt-40 lg:pb-32 overflow-hidden bg-cover bg-center ${!temple.imageUrl ? 'bg-gradient-hero' : ''}`}

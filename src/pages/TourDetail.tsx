@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Layout from "@/components/layout/Layout";
 import { useCMSTour } from "@/hooks/useWixCMS";
+import SEO from "@/components/SEO";
 
 const TourDetail = () => {
     const { slug } = useParams<{ slug: string }>();
@@ -49,7 +50,11 @@ const TourDetail = () => {
 
     return (
         <Layout>
-            {/* Hero Section */}
+            <SEO 
+                title={tour.name} 
+                description={tour.description || tour.longDescription || `Embark on the spiritual ${tour.name} pilgrimage journey.`} 
+                ogImage={tour.imageUrl || undefined}
+            />
             {/* Hero Section */}
             <section
                 className={`relative pt-32 pb-24 lg:pt-40 lg:pb-32 overflow-hidden bg-cover bg-center ${!tour.imageUrl ? 'bg-gradient-hero' : ''}`}

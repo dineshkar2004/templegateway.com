@@ -35,6 +35,26 @@ const App = () => {
         } catch (err) {
           console.log("Autoplay blocked by browser policy:", err);
           setIsPlaying(false);
+          
+          // Add interaction listener to play when user interacts with the page
+          const handleFirstInteraction = async () => {
+            try {
+              if (audioRef.current && audioRef.current.paused) {
+                await audioRef.current.play();
+                setIsPlaying(true);
+              }
+            } catch (e) {
+              console.log("Still blocked");
+            } finally {
+              document.removeEventListener('click', handleFirstInteraction);
+              document.removeEventListener('scroll', handleFirstInteraction);
+              document.removeEventListener('touchstart', handleFirstInteraction);
+            }
+          };
+          
+          document.addEventListener('click', handleFirstInteraction);
+          document.addEventListener('scroll', handleFirstInteraction, { passive: true });
+          document.addEventListener('touchstart', handleFirstInteraction, { passive: true });
         }
       };
 
@@ -81,7 +101,7 @@ const App = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
-        <audio ref={audioRef} src={backgroundMusic} preload="auto" />
+        <audio ref={audioRef} src={backgroundMusic} preload="auto" autoPlay />
         <button
           onClick={isPlaying ? toggleMute : toggleMusic}
           className="fixed bottom-4 right-4 z-50 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"

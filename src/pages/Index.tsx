@@ -199,11 +199,19 @@ const Index = () => {
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
                     <div className="relative h-52 bg-gradient-hero overflow-hidden">
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="font-display text-6xl text-primary-foreground/20">
-                          {temple.deity.charAt(0)}
-                        </span>
-                      </div>
+                      {temple.imageUrl ? (
+                        <img 
+                          src={temple.imageUrl} 
+                          alt={temple.name} 
+                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="font-display text-6xl text-primary-foreground/20">
+                            {temple.deity ? temple.deity.charAt(0) : temple.name?.charAt(0)}
+                          </span>
+                        </div>
+                      )}
                       <div className="absolute top-4 right-4">
                         <span className="bg-background/90 text-foreground text-xs font-body px-3 py-1 rounded-full">
                           {temple.deity}
@@ -294,11 +302,19 @@ const Index = () => {
                     className="group bg-card rounded-2xl overflow-hidden shadow-card hover:shadow-elevated transition-all duration-300 flex-none w-[85vw] md:w-[380px] snap-center hover:-translate-y-1"
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
-                    <div className="relative h-48 bg-gradient-hero flex items-center justify-center">
-                      <span className="font-display text-8xl text-primary-foreground/20">
-                        {pkg.name ? pkg.name.charAt(0) : ''}
-                      </span>
-                      <div className="absolute top-4 right-4 flex items-center gap-1 bg-background/90 px-2 py-1 rounded-full">
+                    <div className="relative h-48 bg-gradient-hero flex items-center justify-center overflow-hidden">
+                      {pkg.imageUrl ? (
+                        <img 
+                          src={pkg.imageUrl} 
+                          alt={pkg.name} 
+                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                        />
+                      ) : (
+                        <span className="font-display text-8xl text-primary-foreground/20">
+                          {pkg.name ? pkg.name.charAt(0) : ''}
+                        </span>
+                      )}
+                      <div className="absolute top-4 right-4 z-10 flex items-center gap-1 bg-background/90 px-2 py-1 rounded-full">
                         <Star size={14} className="text-golden fill-golden" />
                         <span className="text-sm font-medium text-foreground">{pkg.rating}</span>
                       </div>

@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MapPin, Search, Filter, X, ChevronDown, ChevronUp } from "lucide-react";
+import { MapPin, Search, Filter, X } from "lucide-react";
 
 const Temples = () => {
   const { temples } = useCMSTemples(); // ✅ Only Wix CMS
@@ -23,7 +23,7 @@ const Temples = () => {
   const [selectedState, setSelectedState] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedTemple, setSelectedTemple] = useState<any | null>(null);
-  const [expandedTemple, setExpandedTemple] = useState<string | null>(null);
+
   const [showFilters, setShowFilters] = useState(false);
 
   // Dynamic filter options from Wix data
@@ -246,58 +246,6 @@ const Temples = () => {
                       </Link>
                     </div>
 
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setExpandedTemple(expandedTemple === temple.id ? null : temple.id);
-                      }}
-                      className="absolute right-5 top-12 w-8 h-8 flex items-center justify-center rounded-full bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                    >
-                      {expandedTemple === temple.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                    </button>
-
-                    {expandedTemple === temple.id && (
-                      <div className="mt-4 pt-4 border-t border-border/50 text-sm text-muted-foreground space-y-2 animate-in slide-in-from-top-2">
-                        {temple.imageUrl && (
-                          <div className="w-full h-40 relative rounded-lg overflow-hidden bg-muted mb-4">
-                            <img
-                              src={temple.imageUrl}
-                              alt={temple.name}
-                              className="absolute inset-0 w-full h-full object-cover"
-                            />
-                          </div>
-                        )}
-
-                        {temple.deityName && (
-                          <p><span className="font-medium text-foreground">Main Deity: </span>{temple.deityName}</p>
-                        )}
-
-                        {temple.otherDeity && (
-                          <p><span className="font-medium text-foreground">Other Deities: </span>{temple.otherDeity}</p>
-                        )}
-
-                        {temple.famousFor && (
-                          <p><span className="font-medium text-foreground">Famous For: </span>{temple.famousFor}</p>
-                        )}
-
-                        {temple.openTime && (
-                          <p><span className="font-medium text-foreground">Timings: </span>{temple.openTime}</p>
-                        )}
-
-                        {temple.belief && (
-                          <p><span className="font-medium text-foreground">Belief: </span>{temple.belief}</p>
-                        )}
-
-                        {(temple.address1 || temple.town || temple.pincode) && (
-                          <p>
-                            <span className="font-medium text-foreground">Address: </span>
-                            {[temple.address1, temple.address2, temple.town, temple.district, temple.state, temple.country, temple.pincode]
-                              .filter(Boolean)
-                              .join(", ")}
-                          </p>
-                        )}
-                      </div>
-                    )}
                   </div>
                 ))
               )}

@@ -108,11 +108,19 @@ const Pilgrimage = () => {
                 className="group bg-card rounded-2xl overflow-hidden shadow-card hover:shadow-elevated transition-all duration-300"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                <div className="relative h-48 bg-gradient-hero flex items-center justify-center">
-                  <span className="font-display text-8xl text-primary-foreground/20">
-                    {pkg.name.charAt(0)}
-                  </span>
-                  <div className="absolute top-4 right-4 flex items-center gap-1 bg-background/90 px-2 py-1 rounded-full">
+                <div className="relative h-48 bg-gradient-hero flex items-center justify-center overflow-hidden">
+                  {pkg.imageUrl ? (
+                    <img 
+                      src={pkg.imageUrl} 
+                      alt={pkg.name} 
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                    />
+                  ) : (
+                    <span className="font-display text-8xl text-primary-foreground/20">
+                      {pkg.name.charAt(0)}
+                    </span>
+                  )}
+                  <div className="absolute top-4 right-4 z-10 flex items-center gap-1 bg-background/90 px-2 py-1 rounded-full">
                     <Star size={14} className="text-golden fill-golden" />
                     <span className="text-sm font-medium text-foreground">{pkg.rating}</span>
                   </div>

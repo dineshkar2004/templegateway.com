@@ -93,13 +93,24 @@ export async function fetchTemples() {
 
     console.log('⚠️ Direct Wix API call (may fail due to CORS)...');
     const client = getWixClient();
-    // Query data items using the query() method
-    const dataItemsList = await client.items.query(COLLECTIONS.TEMPLES).find();
+    let allItems: any[] = [];
+    let skipCount = 0;
+    const limitCount = 1000;
+
+    while (true) {
+      const result = await client.items.query(COLLECTIONS.TEMPLES).limit(limitCount).skip(skipCount).find();
+      allItems.push(...result.items);
+      
+      if (result.items.length < limitCount) {
+        break;
+      }
+      skipCount += limitCount;
+    }
 
     console.log('Temples Data Items:');
-    console.log('Total: ', dataItemsList.items.length);
+    console.log('Total: ', allItems.length);
 
-    return dataItemsList.items.map((item: any) => {
+    return allItems.map((item: any) => {
       // Extract field values from Wix data item structure
       // Wix returns data in item.data object
       const fields = item.data || {};
@@ -214,22 +225,33 @@ export async function fetchTours() {
     console.log('🔍 Fetching tours from Wix CMS...');
     console.log('📦 Collection ID:', collectionId);
 
-    // Query data items using the query() method
-    const dataItemsList = await client.items.query(collectionId).find();
+    let allItems: any[] = [];
+    let skipCount = 0;
+    const limitCount = 1000;
+
+    while (true) {
+      const result = await client.items.query(collectionId).limit(limitCount).skip(skipCount).find();
+      allItems.push(...result.items);
+      
+      if (result.items.length < limitCount) {
+        break;
+      }
+      skipCount += limitCount;
+    }
 
     console.log('✅ Pilgrimage Packages Data Items:');
-    console.log('📊 Total: ', dataItemsList.items.length);
-    console.log('📋 Item IDs:', dataItemsList.items
+    console.log('📊 Total: ', allItems.length);
+    console.log('📋 Item IDs:', allItems
       .map((item) => item.data?._id || item._id)
       .join(', ')
     );
-    console.log('📝 Item Names:', dataItemsList.items
+    console.log('📝 Item Names:', allItems
       .map((item) => item.data?.name || 'No name')
       .join(', ')
     );
-    console.log('🔍 Full Response:', dataItemsList);
+    console.log('🔍 Full Response (Items Array):', allItems);
 
-    return dataItemsList.items.map((item: any) => {
+    return allItems.map((item: any) => {
       const fields = item.data || {};
 
       return {

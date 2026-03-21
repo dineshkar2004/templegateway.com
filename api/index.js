@@ -81,11 +81,26 @@ app.get("/api/temples", async (req, res) => {
   try {
     const client = getWixClient();
 
-    const result = await client.items
-      .query("TempleandToursDB")
-      .find();
+    let allItems = [];
+    let skipCount = 0;
+    const limitCount = 1000;
 
-    const temples = result.items.map((item) => {
+    while (true) {
+      const result = await client.items
+        .query("TempleandToursDB")
+        .limit(limitCount)
+        .skip(skipCount)
+        .find();
+
+      allItems.push(...result.items);
+
+      if (result.items.length < limitCount) {
+        break;
+      }
+      skipCount += limitCount;
+    }
+
+    const temples = allItems.map((item) => {
       const f = extractFields(item);
 
       return {
@@ -177,11 +192,26 @@ app.get("/api/tours", async (req, res) => {
   try {
     const client = getWixClient();
 
-    const result = await client.items
-      .query("PilgrimagePackagesDB")
-      .find();
+    let allItems = [];
+    let skipCount = 0;
+    const limitCount = 1000;
 
-    const tours = result.items.map((item) => {
+    while (true) {
+      const result = await client.items
+        .query("PilgrimagePackagesDB")
+        .limit(limitCount)
+        .skip(skipCount)
+        .find();
+
+      allItems.push(...result.items);
+
+      if (result.items.length < limitCount) {
+        break;
+      }
+      skipCount += limitCount;
+    }
+
+    const tours = allItems.map((item) => {
       const f = extractFields(item);
 
       console.log("Raw Wix Item Data:", f);

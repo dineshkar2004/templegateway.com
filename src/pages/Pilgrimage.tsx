@@ -1,72 +1,18 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
 import { Clock, MapPin, Users, Star, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
 import Layout from "@/components/layout/Layout";
 import { useCMSTours } from "@/hooks/useWixCMS";
-import { Tour } from "@/data/tours";
 import SEO from "@/components/SEO";
 
 const Pilgrimage = () => {
-  const { toast } = useToast();
   const { tours } = useCMSTours();
 
-  const [isBookingOpen, setIsBookingOpen] = useState(false);
-  const [selectedPackage, setSelectedPackage] = useState<Tour | null>(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    travelers: "1",
-    preferredDate: "",
-    message: "",
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const googleFormUrl = "https://forms.gle/1z7cDneyMhPUE97V8";
 
-  const handleBookNow = (pkg: Tour) => {
-    setSelectedPackage(pkg);
-    setIsBookingOpen(true);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    toast({
-      title: "Booking Request Submitted!",
-      description: `We've received your request for ${selectedPackage?.name}. Our team will contact you within 24 hours.`,
-    });
-
-    setIsBookingOpen(false);
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      travelers: "1",
-      preferredDate: "",
-      message: "",
-    });
-    setIsSubmitting(false);
+  const handleBookNow = () => {
+    window.open(googleFormUrl, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -173,7 +119,7 @@ const Pilgrimage = () => {
                     </Link>
                     <Button
                       className="bg-gradient-hero text-primary-foreground hover:opacity-90"
-                      onClick={() => handleBookNow(pkg)}
+                      onClick={handleBookNow}
                     >
                       Book Now <ArrowRight size={16} className="ml-2" />
                     </Button>
@@ -221,127 +167,6 @@ const Pilgrimage = () => {
           </div>
         </div>
       </section>
-
-      {/* Booking Dialog */}
-      <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
-        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="font-display text-2xl text-foreground">
-              Book Your Pilgrimage
-            </DialogTitle>
-            <DialogDescription className="font-body text-muted-foreground">
-              {selectedPackage && (
-                <span>
-                  <strong className="text-foreground">{selectedPackage.name}</strong> - {selectedPackage.duration}
-                </span>
-              )}
-            </DialogDescription>
-          </DialogHeader>
-
-          <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name" className="font-body">Full Name *</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  placeholder="Your full name"
-                  required
-                  className="font-body"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email" className="font-body">Email Address *</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="your@email.com"
-                  required
-                  className="font-body"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="phone" className="font-body">Phone Number *</Label>
-                <Input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  placeholder="+91 XXXXX XXXXX"
-                  required
-                  className="font-body"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="travelers" className="font-body">Number of Travelers *</Label>
-                <Input
-                  id="travelers"
-                  name="travelers"
-                  type="number"
-                  min="1"
-                  max="50"
-                  value={formData.travelers}
-                  onChange={handleInputChange}
-                  required
-                  className="font-body"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="preferredDate" className="font-body">Preferred Travel Date</Label>
-              <Input
-                id="preferredDate"
-                name="preferredDate"
-                type="date"
-                value={formData.preferredDate}
-                onChange={handleInputChange}
-                className="font-body"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="message" className="font-body">Special Requests</Label>
-              <Textarea
-                id="message"
-                name="message"
-                value={formData.message}
-                onChange={handleInputChange}
-                placeholder="Any special requirements, dietary restrictions, mobility needs, etc."
-                rows={3}
-                className="font-body"
-              />
-            </div>
-
-            <div className="flex gap-3 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsBookingOpen(false)}
-                className="flex-1 font-body"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="flex-1 bg-gradient-hero text-primary-foreground hover:opacity-90 font-display"
-              >
-                {isSubmitting ? "Submitting..." : "Submit Request"}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
     </Layout>
   );
 };

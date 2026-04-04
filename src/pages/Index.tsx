@@ -369,9 +369,9 @@ const Index = () => {
                           asChild
                           className="bg-gradient-hero text-primary-foreground hover:opacity-90"
                         >
-                          <Link to="/pilgrimage">
+                          <a href="https://forms.gle/1z7cDneyMhPUE97V8" target="_blank" rel="noopener noreferrer">
                             Book Now <ArrowRight size={16} className="ml-2" />
-                          </Link>
+                          </a>
                         </Button>
                       </div>
                     </div>

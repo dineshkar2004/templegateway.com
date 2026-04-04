@@ -73,6 +73,116 @@ function extractFields(item) {
     : item;
 }
 
+// ---------------- ITINERARY PARSER ----------------
+
+function parseItineraryString(itineraryStr) {
+  if (!itineraryStr || typeof itineraryStr !== "string") return [];
+
+  // Split by "Day X" pattern
+  const days = itineraryStr.split(/Day\s+(\d+)/i).filter(Boolean);
+  const result = [];
+
+  for (let i = 0; i < days.length; i += 2) {
+    const dayNum = parseInt(days[i]);
+    const content = days[i + 1] || "";
+    
+    // Attempt to split title and description by the first sentence or newline
+    const firstFullStop = content.indexOf('.');
+    let title = "";
+    let description = "";
+
+    if (firstFullStop !== -1) {
+      title = content.substring(0, firstFullStop).trim();
+      description = content.substring(firstFullStop + 1).trim();
+    } else {
+      title = content.trim();
+      description = content.trim();
+    }
+
+    result.push({
+      day: dayNum,
+      title: title || `Day ${dayNum}`,
+      description: description,
+      temples: [], // We can't easily extract this from raw text without NLP
+      cities: []
+    });
+  }
+
+  return result;
+}
+
+function mapTourItem(item) {
+  const f = extractFields(item);
+  
+  // 🪵 DIAGNOSTIC: Log what we found
+  console.log(`\n📦 Mapping Tour: ${f.name || f.title || f.Name || f.Title || item._id}`);
+  console.log(`   Keys present: ${Object.keys(f).slice(0, 10).join(", ")}...`);
+
+  // Robust field selectors
+  const itenaryData = f.itenary || f.itinerary || f.Itinerary || f.Itenary || f.itenary_fld;
+  const placesData = f.placesCovered || f.places_covered || f.PlacesCovered || f.placesCovered_fld;
+  const durationData = f.duration || f.Duration || f.duration_fld;
+  const templesData = f.templesCovered || f.temples_covered || f.templesCovered_fld;
+  const templeCountData = f.templeCount || f.templesCount || f.templeCount_fld;
+  const imageData = f.image || f.image_fld || f.Image || f.Image_fld;
+  const inclusionsData = f.inclusionsAndExclusions || f.inclusions_and_exclusions || f.inclusionsAndExclusions_fld;
+
+  const parsedItinerary = parseItineraryString(itenaryData);
+
+  const places = typeof placesData === "string"
+    ? placesData.split(",").map((p) => p.trim())
+    : (Array.isArray(placesData) ? placesData : []);
+
+  const cities = (Array.isArray(f.citiesCovered) && f.citiesCovered.length > 0)
+    ? f.citiesCovered 
+    : (f.citiesCovered ? f.citiesCovered.split(',').filter(Boolean) : places);
+
+  const inclusions = (Array.isArray(f.inclusions) && f.inclusions.length > 0)
+    ? f.inclusions
+    : (inclusionsData ? inclusionsData.split('\n').filter(Boolean).map(i => i.trim()) : []);
+
+  const highlights = (Array.isArray(f.highlights) && f.highlights.length > 0)
+    ? f.highlights
+    : (f.description ? [f.description.substring(0, 100).trim() + "..."] : []);
+
+  const durationMatch = (durationData || "").match(/(\d+)\s*Days?\s*\/\s*(\d+)\s*Nights?/i);
+  const days = durationMatch ? parseInt(durationMatch[1]) : (parseInt(f.days) || 0);
+  const nights = durationMatch ? parseInt(durationMatch[2]) : (parseInt(f.nights) || 0);
+
+  const name = f.name || f.title || f.Name || f.Title || "";
+  const slug = f.slug || name.toLowerCase()
+    .replace(/[^\w\s-]/g, '') // remove all non-word/non-space/non-dash chars
+    .trim()
+    .replace(/\s+/g, '-') // replace spaces with -
+    .replace(/-+/g, '-'); // collapse multiple -
+
+  console.log(`   Result: ${days} Days, ${cities.length} Cities, ${parsedItinerary.length} Itinerary steps`);
+
+  return {
+    id: item._id,
+    name,
+    imageUrl: getWixImageUrl(imageData),
+    duration: durationData || "",
+    days,
+    nights,
+    groupSize: f.groupSize || "2-10 People",
+    rating: parseFloat(f.rating) || 4.5,
+    state: f.state || "",
+    zone: f.zone || "",
+    description: f.description || "",
+    longDescription: f.longDescription || f.description || "",
+    placesCovered: places,
+    citiesCovered: cities,
+    templesCovered: Number(templesData) || 0,
+    templesCount: parseInt(templeCountData || templesData) || 0,
+    highlights,
+    inclusions,
+    inclusionsAndExclusions: inclusionsData || "",
+    itinerary: parsedItinerary,
+    slug
+  };
+}
+
 // =====================================================
 // ================= TEMPLES API =======================
 // =====================================================
@@ -211,40 +321,7 @@ app.get("/api/tours", async (req, res) => {
       skipCount += limitCount;
     }
 
-    const tours = allItems.map((item) => {
-      const f = extractFields(item);
-
-      console.log("Raw Wix Item Data:", f);
-      return {
-        id: item._id,
-        name: f.title || f.name || "",
-        imageUrl: getWixImageUrl(f.image),
-        duration: f.duration || "",
-        state: f.state || "",
-        zone: f.zone || "",
-        description: f.description || "",
-        placesCovered: typeof f.placesCovered === "string"
-          ? f.placesCovered.split(",").map((p) => p.trim())
-          : f.placesCovered ?? [],
-        citiesCovered: Array.isArray(f.citiesCovered) ? f.citiesCovered : (f.citiesCovered ? f.citiesCovered.split(',').filter(Boolean) : []),
-        templesCovered: (f.templesCovered) || 0,
-        templesCount: parseInt(f.templeCount || f.templesCount || f.templesCovered) || 0,
-        inclusionsAndExclusions: f.inclusionsAndExclusions || "",
-        itenary: f.itenary || "",
-        itinerary: Array.isArray(f.itinerary) ? f.itinerary.map((it) => ({
-          day: parseInt(it.day) || 0,
-          title: it.title || "",
-          description: it.description || "",
-          temples: Array.isArray(it.temples) ? it.temples : (it.temples ? it.temples.split(',').filter(Boolean) : []),
-          cities: Array.isArray(it.cities) ? it.cities : (it.cities ? it.cities.split(',').filter(Boolean) : []),
-        })) : [],
-        slug:
-          f.slug ||
-          (f.title || f.name)?.toLowerCase().replace(/[^a-z0-9]+/g, "-") ||
-          "",
-      };
-    });
-
+    const tours = allItems.map(mapTourItem);
     res.json(tours);
   } catch (error) {
     console.error("Tours Error:", error);
@@ -268,40 +345,7 @@ app.get("/api/tours/:idOrSlug", async (req, res) => {
     }
 
     const item = result.items[0];
-    const f = extractFields(item);
-
-    res.json({
-      id: item._id,
-      name: f.title || f.name || "",
-      imageUrl: getWixImageUrl(f.image),
-      duration: f.duration || "",
-      days: parseInt(f.days) || 0,
-      nights: parseInt(f.nights) || 0,
-      groupSize: f.groupSize || "",
-      rating: parseFloat(f.rating) || 0,
-      state: f.state || "",
-      zone: f.zone || "",
-      description: f.description || "",
-      longDescription: f.longDescription || f.description || "",
-      placesCovered: typeof f.placesCovered === "string"
-        ? f.placesCovered.split(",").map((p) => p.trim())
-        : f.placesCovered ?? [],
-      citiesCovered: Array.isArray(f.citiesCovered) ? f.citiesCovered : (f.citiesCovered ? f.citiesCovered.split(',').filter(Boolean) : []),
-      templesCovered: Number(f.templesCovered) || 0,
-      templesCount: parseInt(f.templeCount || f.templesCount || f.templesCovered) || 0,
-      highlights: Array.isArray(f.highlights) ? f.highlights : (f.highlights ? f.highlights.split('\n').filter(Boolean) : []),
-      inclusions: Array.isArray(f.inclusions) ? f.inclusions : (f.inclusions ? f.inclusions.split('\n').filter(Boolean) : []),
-      inclusionsAndExclusions: f.inclusionsAndExclusions || "",
-      itenary: f.itenary || "",
-      itinerary: Array.isArray(f.itinerary) ? f.itinerary.map((it) => ({
-        day: parseInt(it.day) || 0,
-        title: it.title || "",
-        description: it.description || "",
-        temples: Array.isArray(it.temples) ? it.temples : (it.temples ? it.temples.split(',').filter(Boolean) : []),
-        cities: Array.isArray(it.cities) ? it.cities : (it.cities ? it.cities.split(',').filter(Boolean) : []),
-      })) : [],
-      slug: f.slug || (f.title || f.name)?.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "",
-    });
+    res.json(mapTourItem(item));
   } catch (error) {
     console.error("Tour Detail Error:", error);
     res.status(500).json({ error: error.message });

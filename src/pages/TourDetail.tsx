@@ -7,17 +7,33 @@ import {
     Calendar,
     CheckCircle,
     ArrowLeft,
-    Building2
+    Building2,
+    ArrowRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Layout from "@/components/layout/Layout";
-import { useCMSTour } from "@/hooks/useWixCMS";
+import { useCMSTour, useCMSTemples } from "@/hooks/useWixCMS";
 import SEO from "@/components/SEO";
 
 const TourDetail = () => {
     const { slug } = useParams<{ slug: string }>();
-    const { tour, isLoading } = useCMSTour(slug || "");
+    const { tour, isLoading: tourLoading } = useCMSTour(slug || "");
+    const { temples, isLoading: templesLoading } = useCMSTemples();
+
+    const isLoading = tourLoading || templesLoading;
+
+    // Help function to find temple by name
+    const getTempleByName = (name: string) => {
+        return temples.find(t => t.name.toLowerCase() === name.toLowerCase());
+    };
+
+    // Get all unique temples in the tour
+    const tourTemples = tour?.itinerary
+        ?.flatMap(day => day.temples || [])
+        .filter((value, index, self) => self.indexOf(value) === index)
+        .map(name => getTempleByName(name))
+        .filter(Boolean) || [];
 
     if (isLoading) {
         return (
@@ -215,15 +231,30 @@ const TourDetail = () => {
                                                 Temples Visited:
                                             </p>
                                             <div className="flex flex-wrap gap-2">
-                                                {day.temples.map((temple, i) => (
-                                                    <Badge
-                                                        key={i}
-                                                        variant="secondary"
-                                                        className="bg-secondary/10 text-secondary border-secondary/20"
-                                                    >
-                                                        {temple}
-                                                    </Badge>
-                                                ))}
+                                                {day.temples.map((templeName, i) => {
+                                                    const templeData = getTempleByName(templeName);
+                                                    return (
+                                                        <div key={i}>
+                                                            {templeData ? (
+                                                                <Link to={`/temple/${templeData.slug}`}>
+                                                                    <Badge
+                                                                        variant="secondary"
+                                                                        className="bg-secondary/10 text-secondary border-secondary/20 hover:bg-secondary/20 transition-colors cursor-pointer"
+                                                                    >
+                                                                        {templeName}
+                                                                    </Badge>
+                                                                </Link>
+                                                            ) : (
+                                                                <Badge
+                                                                    variant="secondary"
+                                                                    className="bg-secondary/10 text-secondary border-secondary/20"
+                                                                >
+                                                                    {templeName}
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
                                             </div>
                                         </div>
                                     )}
@@ -253,6 +284,75 @@ const TourDetail = () => {
                     </div>
                 </div>
             </section>
+
+            {/* Temples Detail Section */}
+            {tourTemples.length > 0 && (
+                <section className="py-20 bg-muted">
+                    <div className="container mx-auto px-4">
+                        <div className="text-center mb-14">
+                            <span className="text-secondary font-body text-sm uppercase tracking-widest">
+                                Spiritual Destinations
+                            </span>
+                            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mt-2">
+                                Temples You'll Visit
+                            </h2>
+                            <div className="section-divider" />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+                            {tourTemples.map((temple) => (
+                                <div 
+                                    key={temple!.id}
+                                    className="bg-background rounded-2xl overflow-hidden shadow-card flex flex-col sm:flex-row border border-border group hover:shadow-elevated transition-all duration-300"
+                                >
+                                    <div className="sm:w-1/3 relative h-48 sm:h-auto overflow-hidden">
+                                        {temple!.imageUrl ? (
+                                            <img 
+                                                src={temple!.imageUrl} 
+                                                alt={temple!.name} 
+                                                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                                            />
+                                        ) : (
+                                            <div className="absolute inset-0 bg-gradient-hero flex items-center justify-center">
+                                                <span className="font-display text-6xl text-primary-foreground/20">
+                                                    {temple!.name.charAt(0)}
+                                                </span>
+                                            </div>
+                                        )}
+                                        <div className="absolute top-3 right-3 sm:top-2 sm:right-2">
+                                            <Badge className="bg-saffron text-white border-none text-[10px] sm:text-xs">
+                                                {temple!.deity}
+                                            </Badge>
+                                        </div>
+                                    </div>
+                                    <div className="p-6 sm:w-2/3 space-y-3">
+                                        <div>
+                                            <h3 className="font-display text-xl font-bold text-foreground">
+                                                {temple!.name}
+                                            </h3>
+                                            <div className="flex items-center gap-1 text-primary text-sm font-medium mt-1">
+                                                <MapPin size={14} />
+                                                <span>{temple!.district}, {temple!.state}</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <p className="font-body text-muted-foreground text-sm line-clamp-3">
+                                            {temple!.content || temple!.famousFor}
+                                        </p>
+                                        
+                                        <Link 
+                                            to={`/temple/${temple!.slug}`}
+                                            className="inline-flex items-center gap-1 text-secondary font-medium text-sm hover:underline pt-2"
+                                        >
+                                            Explore Temple History <ArrowRight size={14} />
+                                        </Link>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            )}
 
             {/* Inclusions */}
             <section className="py-12 bg-muted">
@@ -286,6 +386,16 @@ const TourDetail = () => {
                             asChild
                             size="lg"
                             className="bg-background text-foreground hover:bg-background/90 px-8 py-6 text-lg font-display"
+                        >
+                            <a href="https://forms.gle/1z7cDneyMhPUE97V8" target="_blank" rel="noopener noreferrer">
+                                Book Now
+                            </a>
+                        </Button>
+                        <Button
+                            asChild
+                            variant="outline"
+                            size="lg"
+                            className="border-primary-foreground text-primary-foreground bg-transparent hover:bg-primary-foreground hover:text-primary px-8 py-6 text-lg font-display transition-colors"
                         >
                             <Link to="/contact">Contact Us</Link>
                         </Button>

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { MapPin, Phone, Mail, Clock, Send } from "lucide-react";
+import { MapPin, Phone, Mail, Clock, Send, Facebook, Instagram, Twitter, Youtube } from "lucide-react";
 import { toast } from "sonner";
 import RevealOnScroll from "@/components/RevealOnScroll";
 import SEO from "@/components/SEO";
@@ -170,6 +170,41 @@ const Contact = () => {
                     )}
                   </Button>
                 </form>
+
+                {/* Social Links */}
+                <div className="mt-8 pt-6 border-t border-border flex flex-col items-center justify-center text-center">
+                  <h3 className="font-display text-lg font-semibold text-foreground mb-4">
+                    Follow Us
+                  </h3>
+                  <div className="flex gap-3">
+                    {[
+                      {
+                        name: "Facebook",
+                        icon: Facebook,
+                        url: "https://www.facebook.com/templeadvisor/",
+                      },
+                      { name: "Instagram", icon: Instagram, url: "#" },
+                      { name: "Twitter", icon: Twitter, url: "#" },
+                      { name: "YouTube", icon: Youtube, url: "#" },
+                    ].map((social) => (
+                      <a
+                        key={social.name}
+                        href={social.url !== "" ? social.url : "#"}
+                        target={social.url !== "#" && social.url !== "" ? "_blank" : "_self"}
+                        rel="noopener noreferrer"
+                        className="p-3 bg-muted hover:bg-primary text-foreground hover:text-primary-foreground rounded-full transition-all duration-300 shadow-sm hover:shadow-md flex items-center justify-center group"
+                        title={social.name}
+                        onClick={(e) => {
+                          if (social.url === "#" || social.url === "") {
+                            e.preventDefault();
+                          }
+                        }}
+                      >
+                        <social.icon size={20} className="transition-colors group-hover:text-primary-foreground" />
+                      </a>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               {/* Contact Info */}
@@ -228,34 +263,6 @@ const Contact = () => {
                   ))}
                 </div>
 
-                {/* Social Links */}
-                <div className="pt-6 border-t border-border">
-                  <h3 className="font-display text-lg font-semibold text-foreground mb-4">
-                    Follow Us
-                  </h3>
-                  <div className="flex gap-4">
-                    {[
-                      {
-                        name: "Facebook",
-                        url: "https://www.facebook.com/templeadvisor/",
-                      },
-                      { name: "Instagram", url: "" },
-                      { name: "Twitter", url: "#" },
-                      { name: "YouTube", url: "#" },
-                    ].map((social) => (
-                      <button
-                        key={social.name}
-                        onClick={() =>
-                          social.url !== "#" &&
-                          window.open(social.url, "_blank")
-                        }
-                        className="px-4 py-2 bg-muted hover:bg-primary hover:text-primary-foreground rounded-lg font-body text-sm transition-colors"
-                      >
-                        {social.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
               </div>
             </div>
           </div>

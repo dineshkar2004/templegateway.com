@@ -8,7 +8,7 @@ const About = () => {
     <Layout>
       <SEO 
         title="About Us" 
-        description="Temple Gateway was founded to make India's rich spiritual heritage accessible. Discover our story, mission, and dedication to connecting spiritual seekers with sacred spaces."
+        description="Learn about Temple Gateway's mission to make India's rich spiritual heritage accessible. Discover our dedication to connecting seeking travelers with sacred Hindu temples."
       />
       {/* Hero Section */}
       <section className="h-[350px] flex items-center justify-center bg-gradient-warm">

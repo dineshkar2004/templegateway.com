@@ -39,7 +39,7 @@ const Index = () => {
     <Layout>
       <SEO
         title="Home"
-        description="Welcome to Temple Gateway. Embark on transformative spiritual journeys to India's most sacred temples with our curated pilgrimage tours and expert spiritual guides."
+        description="Embark on sacred Hindu pilgrimages with Temple Gateway. Book expertly crafted yatra packages and spiritual tours across India's most divine temple heritage sites."
       />
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">

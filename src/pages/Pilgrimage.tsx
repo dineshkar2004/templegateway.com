@@ -18,7 +18,7 @@ const Pilgrimage = () => {
     <Layout>
       <SEO
         title="Pilgrimage Tour Packages"
-        description="Embark on transformative spiritual journeys with our expertly crafted pilgrimage packages. Browse custom tours, book experts, and experience divine blessings across India."
+        description="Book transformative Hindu pilgrimage packages with Temple Gateway. Browse our expert-guided yatra tours, book spiritual guides, and experience divine blessings across India."
       />
       {/* Hero Section */}
       <section className="relative h-[350px] flex items-center justify-center overflow-hidden" style={{ backgroundColor: '#f5f1eb' }}>

@@ -63,7 +63,7 @@ const Contact = () => {
     <Layout>
       <SEO 
         title="Contact Us" 
-        description="Get in touch with Temple Gateway. Contact us for custom pilgrimage planning, spiritual guidance, or to suggest a sacred temple for our directory."
+        description="Contact Temple Gateway for custom yatra bookings, pilgrimage planning, and spiritual guidance. Reach out to our expert team for inquiries about our temple tours."
       />
       {/* Hero Section */}
       <section className="h-[350px] flex items-center justify-center bg-gradient-warm">

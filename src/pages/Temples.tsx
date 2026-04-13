@@ -85,7 +85,7 @@ const Temples = () => {
     <Layout>
       <SEO 
         title="Sacred Temples Directory" 
-        description="Explore our extensive directory of sacred temples across India with interactive maps. Search, filter, and discover divine heritage by deity, state, or significance."
+        description="Explore Temple Gateway's directory of Indian Hindu temples. Search and filter through interactive maps to discover heritage sites by state, deity, or spiritual significance."
       />
       {/* Hero Section */}
       <section className="relative h-[350px] flex items-center justify-center overflow-hidden" style={{ backgroundColor: '#f5f1eb' }}>

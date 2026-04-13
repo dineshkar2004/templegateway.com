@@ -5,20 +5,19 @@ import { Badge } from "@/components/ui/badge";
 import Layout from "@/components/layout/Layout";
 import { useCMSTours } from "@/hooks/useWixCMS";
 import SEO from "@/components/SEO";
+import { useState } from "react";
+import BookingModal from "@/components/BookingModal";
 
 const Pilgrimage = () => {
   const { tours } = useCMSTours();
 
-  const googleFormUrl = "https://forms.gle/1z7cDneyMhPUE97V8";
-
-  const handleBookNow = () => {
-    window.open(googleFormUrl, "_blank", "noopener,noreferrer");
-  };
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [selectedTour, setSelectedTour] = useState<{name: string, details?: string} | null>(null);
 
   return (
     <Layout>
-      <SEO 
-        title="Pilgrimage Tour Packages" 
+      <SEO
+        title="Pilgrimage Tour Packages"
         description="Embark on transformative spiritual journeys with our expertly crafted pilgrimage packages. Browse custom tours, book experts, and experience divine blessings across India."
       />
       {/* Hero Section */}
@@ -56,15 +55,15 @@ const Pilgrimage = () => {
             {tours.map((pkg, index) => (
               <div
                 key={pkg.id}
-                className="group bg-card rounded-2xl overflow-hidden shadow-card hover:shadow-elevated transition-all duration-300"
+                className="group bg-card rounded-2xl overflow-hidden shadow-card hover:shadow-elevated transition-all duration-300 flex flex-col"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 <div className="relative h-48 bg-gradient-hero flex items-center justify-center overflow-hidden">
                   {pkg.imageUrl ? (
-                    <img 
-                      src={pkg.imageUrl} 
-                      alt={pkg.name} 
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                    <img
+                      src={pkg.imageUrl}
+                      alt={pkg.name}
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                   ) : (
                     <span className="font-display text-8xl text-primary-foreground/20">
@@ -77,7 +76,7 @@ const Pilgrimage = () => {
                   </div>
                 </div>
 
-                <div className="p-6 space-y-4">
+                <div className="p-6 space-y-4 flex flex-col flex-1">
                   <h3 className="font-display text-2xl font-bold text-foreground group-hover:text-primary transition-colors">
                     {pkg.name}
                   </h3>
@@ -111,7 +110,7 @@ const Pilgrimage = () => {
                     )}
                   </div>
 
-                  <div className="pt-4 flex items-center justify-between border-t border-border">
+                  <div className="pt-6 mt-auto flex items-center justify-between border-t border-border">
                     <Link to={`/tour/${pkg.slug}`}>
                       <Button variant="outline" className="font-body">
                         View Details
@@ -119,7 +118,10 @@ const Pilgrimage = () => {
                     </Link>
                     <Button
                       className="bg-gradient-hero text-primary-foreground hover:opacity-90"
-                      onClick={handleBookNow}
+                      onClick={() => {
+                        setSelectedTour({ name: pkg.name, details: `${pkg.duration} / ${pkg.groupSize}` });
+                        setIsBookingModalOpen(true);
+                      }}
                     >
                       Book Now <ArrowRight size={16} className="ml-2" />
                     </Button>
@@ -167,6 +169,13 @@ const Pilgrimage = () => {
           </div>
         </div>
       </section>
+
+      <BookingModal 
+        isOpen={isBookingModalOpen} 
+        onOpenChange={setIsBookingModalOpen} 
+        tourPackage={selectedTour?.name}
+        tourDetails={selectedTour?.details}
+      />
     </Layout>
   );
 };

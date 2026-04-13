@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { MapPin, Star, Sparkles, Users, Map, Calendar, Phone, Pin, AudioLines, Clock, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import Panchang from "@/components/Panchang";
 import VideoCarousel from "@/components/VideoCarousel";
 import RevealOnScroll from "@/components/RevealOnScroll";
 import SEO from "@/components/SEO";
+import BookingModal from "@/components/BookingModal";
 
 const Index = () => {
   const { temples } = useCMSTemples();
@@ -18,6 +19,9 @@ const Index = () => {
 
   const templesScrollRef = useRef<HTMLDivElement>(null);
   const toursScrollRef = useRef<HTMLDivElement>(null);
+
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [selectedTour, setSelectedTour] = useState<{ name: string, details?: string } | null>(null);
 
   const featuredTemples = temples.slice(0, 8);
   const featuredTours = tours.slice(0, 6);
@@ -33,8 +37,8 @@ const Index = () => {
 
   return (
     <Layout>
-      <SEO 
-        title="Home" 
+      <SEO
+        title="Home"
         description="Welcome to Temple Gateway. Embark on transformative spiritual journeys to India's most sacred temples with our curated pilgrimage tours and expert spiritual guides."
       />
       {/* Hero Section */}
@@ -49,7 +53,7 @@ const Index = () => {
           <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
             <div className="inline-flex items-center gap-2 bg-saffron/20 backdrop-blur-sm px-4 py-2 rounded-full border border-saffron/30">
               <Sparkles size={16} className="text-saffron" />
-              <span className="text-saffron font-body text-sm">Discover India's Sacred Heritage</span>
+              <span className="text-white font-body text-sm">Discover India's Sacred Heritage</span>
             </div>
 
             <h1 className="font-display text-5xl md:text-7xl font-bold text-background leading-tight">
@@ -205,10 +209,10 @@ const Index = () => {
                   >
                     <div className="relative h-52 bg-gradient-hero overflow-hidden">
                       {temple.imageUrl ? (
-                        <img 
-                          src={temple.imageUrl} 
-                          alt={temple.name} 
-                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                        <img
+                          src={temple.imageUrl}
+                          alt={temple.name}
+                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         />
                       ) : (
                         <div className="absolute inset-0 flex items-center justify-center">
@@ -304,15 +308,15 @@ const Index = () => {
                 {featuredTours.map((pkg, index) => (
                   <div
                     key={pkg.id}
-                    className="group bg-card rounded-2xl overflow-hidden shadow-card hover:shadow-elevated transition-all duration-300 flex-none w-[85vw] md:w-[380px] snap-center hover:-translate-y-1"
+                    className="group bg-card rounded-2xl overflow-hidden shadow-card hover:shadow-elevated transition-all duration-300 flex-none w-[85vw] md:w-[380px] snap-center hover:-translate-y-1 flex flex-col"
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
                     <div className="relative h-48 bg-gradient-hero flex items-center justify-center overflow-hidden">
                       {pkg.imageUrl ? (
-                        <img 
-                          src={pkg.imageUrl} 
-                          alt={pkg.name} 
-                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                        <img
+                          src={pkg.imageUrl}
+                          alt={pkg.name}
+                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         />
                       ) : (
                         <span className="font-display text-8xl text-primary-foreground/20">
@@ -325,7 +329,7 @@ const Index = () => {
                       </div>
                     </div>
 
-                    <div className="p-6 space-y-4">
+                    <div className="p-6 space-y-4 flex flex-col flex-1">
                       <h3 className="font-display text-2xl font-bold text-foreground group-hover:text-primary transition-colors">
                         {pkg.name}
                       </h3>
@@ -359,19 +363,20 @@ const Index = () => {
                         )}
                       </div>
 
-                      <div className="pt-4 flex items-center justify-between border-t border-border">
+                      <div className="pt-6 mt-auto flex items-center justify-between border-t border-border">
                         <Link to={`/tour/${pkg.slug}`}>
                           <Button variant="outline" className="font-body">
                             View Details
                           </Button>
                         </Link>
                         <Button
-                          asChild
                           className="bg-gradient-hero text-primary-foreground hover:opacity-90"
+                          onClick={() => {
+                            setSelectedTour({ name: pkg.name, details: `${pkg.duration} / ${pkg.groupSize}` });
+                            setIsBookingModalOpen(true);
+                          }}
                         >
-                          <a href="https://forms.gle/1z7cDneyMhPUE97V8" target="_blank" rel="noopener noreferrer">
-                            Book Now <ArrowRight size={16} className="ml-2" />
-                          </a>
+                          Book Now <ArrowRight size={16} className="ml-2" />
                         </Button>
                       </div>
                     </div>
@@ -488,6 +493,13 @@ const Index = () => {
           </div>
         </RevealOnScroll>
       </section>
+
+      <BookingModal
+        isOpen={isBookingModalOpen}
+        onOpenChange={setIsBookingModalOpen}
+        tourPackage={selectedTour?.name}
+        tourDetails={selectedTour?.details}
+      />
     </Layout>
   );
 };

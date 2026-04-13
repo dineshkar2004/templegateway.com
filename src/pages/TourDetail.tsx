@@ -15,11 +15,14 @@ import { Badge } from "@/components/ui/badge";
 import Layout from "@/components/layout/Layout";
 import { useCMSTour, useCMSTemples } from "@/hooks/useWixCMS";
 import SEO from "@/components/SEO";
+import { useState } from "react";
+import BookingModal from "@/components/BookingModal";
 
 const TourDetail = () => {
     const { slug } = useParams<{ slug: string }>();
     const { tour, isLoading: tourLoading } = useCMSTour(slug || "");
     const { temples, isLoading: templesLoading } = useCMSTemples();
+    const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
     const isLoading = tourLoading || templesLoading;
 
@@ -66,9 +69,9 @@ const TourDetail = () => {
 
     return (
         <Layout>
-            <SEO 
-                title={tour.name} 
-                description={tour.description || tour.longDescription || `Embark on the spiritual ${tour.name} pilgrimage journey.`} 
+            <SEO
+                title={tour.name}
+                description={tour.description || tour.longDescription || `Embark on the spiritual ${tour.name} pilgrimage journey.`}
                 ogImage={tour.imageUrl || undefined}
             />
             {/* Hero Section */}
@@ -301,16 +304,16 @@ const TourDetail = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
                             {tourTemples.map((temple) => (
-                                <div 
+                                <div
                                     key={temple!.id}
                                     className="bg-background rounded-2xl overflow-hidden shadow-card flex flex-col sm:flex-row border border-border group hover:shadow-elevated transition-all duration-300"
                                 >
                                     <div className="sm:w-1/3 relative h-48 sm:h-auto overflow-hidden">
                                         {temple!.imageUrl ? (
-                                            <img 
-                                                src={temple!.imageUrl} 
-                                                alt={temple!.name} 
-                                                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                                            <img
+                                                src={temple!.imageUrl}
+                                                alt={temple!.name}
+                                                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                             />
                                         ) : (
                                             <div className="absolute inset-0 bg-gradient-hero flex items-center justify-center">
@@ -335,12 +338,12 @@ const TourDetail = () => {
                                                 <span>{temple!.district}, {temple!.state}</span>
                                             </div>
                                         </div>
-                                        
+
                                         <p className="font-body text-muted-foreground text-sm line-clamp-3">
                                             {temple!.content || temple!.famousFor}
                                         </p>
-                                        
-                                        <Link 
+
+                                        <Link
                                             to={`/temple/${temple!.slug}`}
                                             className="inline-flex items-center gap-1 text-secondary font-medium text-sm hover:underline pt-2"
                                         >
@@ -383,13 +386,11 @@ const TourDetail = () => {
                     </p>
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                         <Button
-                            asChild
                             size="lg"
                             className="bg-background text-foreground hover:bg-background/90 px-8 py-6 text-lg font-display"
+                            onClick={() => setIsBookingModalOpen(true)}
                         >
-                            <a href="https://forms.gle/1z7cDneyMhPUE97V8" target="_blank" rel="noopener noreferrer">
-                                Book Now
-                            </a>
+                            Book Now
                         </Button>
                         <Button
                             asChild
@@ -410,6 +411,13 @@ const TourDetail = () => {
                     </div>
                 </div>
             </section>
+
+            <BookingModal 
+                isOpen={isBookingModalOpen} 
+                onOpenChange={setIsBookingModalOpen} 
+                tourPackage={tour.name}
+                tourDetails={`${tour.duration} / ${tour.groupSize}`}
+            />
         </Layout>
     );
 };

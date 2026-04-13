@@ -2,15 +2,14 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/logo2.png";
 
 const navLinks = [
   { name: "Home", path: "/" },
   { name: "Temples", path: "/temples" },
   { name: "Pilgrimage", path: "/pilgrimage" },
   { name: "About", path: "/about" },
-  { name: "Contact", path: "/contact" },
-  { name: "Book Now", path: "https://forms.gle/1z7cDneyMhPUE97V8", isExternal: true }
+  { name: "Contact", path: "/contact" }
 ];
 
 const Navbar = () => {
@@ -39,17 +38,6 @@ const Navbar = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
-              link.isExternal ? (
-                <a
-                  key={link.path}
-                  href={link.path}
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="font-body text-sm text-muted-foreground hover:text-foreground transition-all duration-300 relative"
-                >
-                  {link.name}
-                </a>
-              ) : (
                 <Link
                   key={link.path}
                   to={link.path}
@@ -63,7 +51,6 @@ const Navbar = () => {
                     <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-golden rounded-full" />
                   )}
                 </Link>
-              )
             ))}
             <Button
               asChild
@@ -88,18 +75,6 @@ const Navbar = () => {
           <div className="md:hidden py-4 border-t border-border animate-fade-in">
             <div className="flex flex-col gap-4">
               {navLinks.map((link) => (
-                link.isExternal ? (
-                  <a
-                    key={link.path}
-                    href={link.path}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => setIsOpen(false)}
-                    className="font-body text-base py-2 text-muted-foreground"
-                  >
-                    {link.name}
-                  </a>
-                ) : (
                   <Link
                     key={link.path}
                     to={link.path}
@@ -111,7 +86,6 @@ const Navbar = () => {
                   >
                     {link.name}
                   </Link>
-                )
               ))}
               <Button
                 asChild

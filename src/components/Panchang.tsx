@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getPanchang, getNorthIndianPanchang, PanchangData, NorthIndianPanchangData } from "@/lib/panchang";
 import { Sun, Moon, Calendar, Clock, Star, Sparkles, AlertTriangle, CalendarIcon, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -17,37 +18,41 @@ interface PanchangProps {
   compact?: boolean;
 }
 
-const Panchang = ({ date, compact = false }: PanchangProps) => {
+const LOCATIONS = [
+  { id: "india", label: "India (IST +05:30)", labelTamil: "இந்தியா", lat: 20.5937, lng: 78.9629 },
+  { id: "uae", label: "UAE (GST +04:00)", labelTamil: "அமீரகம்", lat: 23.4241, lng: 53.8478 },
+  { id: "usa", label: "USA (EST -05:00)", labelTamil: "அமெரிக்கா", lat: 37.0902, lng: -95.7129 },
+  { id: "uk", label: "UK (GMT +00:00)", labelTamil: "இங்கிலாந்து", lat: 55.3781, lng: -3.4360 },
+  { id: "australia", label: "Australia (AEST +10:00)", labelTamil: "ஆஸ்திரேலியா", lat: -25.2744, lng: 133.7751 },
+  { id: "singapore", label: "Singapore (SGT +08:00)", labelTamil: "சிங்கப்பூர்", lat: 1.3521, lng: 103.8198 },
+  { id: "malaysia", label: "Malaysia (MYT +08:00)", labelTamil: "மலேசியா", lat: 4.2105, lng: 101.9758 },
+  { id: "canada", label: "Canada (EST -05:00)", labelTamil: "கனடா", lat: 56.1304, lng: -106.3468 }
+];
+
+const Panchang = ({ date, latitude, longitude, compact = false }: PanchangProps) => {
   const [selectedDate, setSelectedDate] = useState<Date>(date || new Date());
-  const [tamilPanchang, setTamilPanchang] = useState<PanchangData | null>(null);
-  const [northPanchang, setNorthPanchang] = useState<NorthIndianPanchangData | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setLoading(true);
+  const [selectedLocation, setSelectedLocation] = useState(
+    (latitude && longitude) 
+      ? { id: "custom", label: "Custom Location", labelTamil: "தனிப்பயன் இடம்", lat: latitude, lng: longitude }
+      : LOCATIONS[0]
+  );
+  const tamilPanchang = useMemo(() => {
     try {
-      setTamilPanchang(getPanchang(selectedDate, 13.0827, 80.2707));
-      setNorthPanchang(getNorthIndianPanchang(selectedDate, 28.6139, 77.2090));
+      return getPanchang(selectedDate, selectedLocation.lat, selectedLocation.lng);
     } catch (error) {
-      console.error("Error calculating panchang:", error);
-    } finally {
-      setLoading(false);
+      console.error("Error calculating tamil panchang:", error);
+      return null;
     }
-  }, [selectedDate]);
+  }, [selectedDate, selectedLocation]);
 
-  if (loading) {
-    return (
-      <Card className="bg-card/80 backdrop-blur-sm border-primary/20">
-        <CardHeader className="pb-2">
-          <Skeleton className="h-6 w-48" />
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-20 w-full" />
-        </CardContent>
-      </Card>
-    );
-  }
+  const northPanchang = useMemo(() => {
+    try {
+      return getNorthIndianPanchang(selectedDate, selectedLocation.lat, selectedLocation.lng);
+    } catch (error) {
+      console.error("Error calculating north panchang:", error);
+      return null;
+    }
+  }, [selectedDate, selectedLocation]);
 
   if (!tamilPanchang || !northPanchang) {
     return (
@@ -127,38 +132,57 @@ const Panchang = ({ date, compact = false }: PanchangProps) => {
       <div className="text-center space-y-3">
         <h2 className="text-2xl md:text-3xl font-display text-primary">தினசரி பஞ்சாங்கம் | Daily Panchang</h2>
         <p className="text-sm text-muted-foreground">Daily Panchangam — Tamil & North Indian Traditions</p>
-        <div className="flex items-center justify-center gap-3">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-[240px] justify-start text-left font-normal",
-                  !selectedDate && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {format(selectedDate, "PPP")}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="center">
-              <CalendarComponent
-                mode="single"
-                selected={selectedDate}
-                onSelect={(d) => d && setSelectedDate(d)}
-                initialFocus
-                className={cn("p-3 pointer-events-auto")}
-              />
-            </PopoverContent>
-          </Popover>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setSelectedDate(new Date())}
-            className="text-xs text-muted-foreground"
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <div className="flex items-center gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-[200px] justify-start text-left font-normal",
+                    !selectedDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {format(selectedDate, "PPP")}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="center">
+                <CalendarComponent
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(d) => d && setSelectedDate(d)}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+            {/* <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedDate(new Date())}
+              className="text-xs text-muted-foreground"
+            >
+              Today
+            </Button> */}
+          </div>
+          <Select 
+            value={selectedLocation.id !== "custom" ? selectedLocation.id : ""}
+            onValueChange={(val) => {
+              const loc = LOCATIONS.find(l => l.id === val);
+              if (loc) setSelectedLocation(loc);
+            }}
           >
-            Today
-          </Button>
+            <SelectTrigger className="w-[200px]">
+              <MapPin className="mr-2 h-4 w-4" />
+              <SelectValue placeholder="Select Location" />
+            </SelectTrigger>
+            <SelectContent>
+              {LOCATIONS.map(loc => (
+                <SelectItem key={loc.id} value={loc.id}>{loc.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -256,10 +280,7 @@ const Panchang = ({ date, compact = false }: PanchangProps) => {
               </div>
             )}
 
-            <p className="text-xs text-center text-muted-foreground flex items-center justify-center gap-1">
-              <MapPin className="h-3 w-3" />
-              சென்னை, தமிழ்நாடு | Chennai, Tamil Nadu
-            </p>
+
           </CardContent>
         </Card>
 
@@ -358,10 +379,7 @@ const Panchang = ({ date, compact = false }: PanchangProps) => {
               </div>
             )}
 
-            <p className="text-xs text-center text-muted-foreground flex items-center justify-center gap-1">
-              <MapPin className="h-3 w-3" />
-              Delhi, India
-            </p>
+
           </CardContent>
         </Card>
       </div>

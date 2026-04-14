@@ -12,7 +12,7 @@ const Pilgrimage = () => {
   const { tours } = useCMSTours();
 
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
-  const [selectedTour, setSelectedTour] = useState<{name: string, details?: string} | null>(null);
+  const [selectedTour, setSelectedTour] = useState<{ name: string, details?: string } | null>(null);
 
   return (
     <Layout>
@@ -76,48 +76,50 @@ const Pilgrimage = () => {
                   </div>
                 </div>
 
-                <div className="p-6 space-y-4 flex flex-col flex-1">
-                  <h3 className="font-display text-2xl font-bold text-foreground group-hover:text-primary transition-colors">
-                    {pkg.name}
-                  </h3>
+                <div className="p-6 flex flex-col flex-1">
+                  <div className="space-y-4 flex-1">
+                    <h3 className="font-display text-2xl font-bold text-foreground group-hover:text-primary transition-colors">
+                      {pkg.name}
+                    </h3>
 
-                  <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Clock size={14} />
-                      <span className="font-body">{pkg.duration}</span>
+                    <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Clock size={14} />
+                        <span className="font-body">{pkg.duration}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Users size={14} />
+                        <span className="font-body">{pkg.groupSize}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Users size={14} />
-                      <span className="font-body">{pkg.groupSize}</span>
+
+                    <p className="font-body text-muted-foreground text-sm line-clamp-2">
+                      {pkg.description}
+                    </p>
+
+                    <div className="flex flex-wrap gap-2">
+                      {pkg.citiesCovered.slice(0, 3).map((dest) => (
+                        <Badge key={dest} variant="outline" className="text-xs font-body">
+                          <MapPin size={10} className="mr-1" />
+                          {dest}
+                        </Badge>
+                      ))}
+                      {pkg.citiesCovered.length > 3 && (
+                        <Badge variant="outline" className="text-xs font-body">
+                          +{pkg.citiesCovered.length - 3} more
+                        </Badge>
+                      )}
                     </div>
                   </div>
 
-                  <p className="font-body text-muted-foreground text-sm line-clamp-2">
-                    {pkg.description}
-                  </p>
-
-                  <div className="flex flex-wrap gap-2">
-                    {pkg.citiesCovered.slice(0, 3).map((dest) => (
-                      <Badge key={dest} variant="outline" className="text-xs font-body">
-                        <MapPin size={10} className="mr-1" />
-                        {dest}
-                      </Badge>
-                    ))}
-                    {pkg.citiesCovered.length > 3 && (
-                      <Badge variant="outline" className="text-xs font-body">
-                        +{pkg.citiesCovered.length - 3} more
-                      </Badge>
-                    )}
-                  </div>
-
-                  <div className="pt-6 mt-auto flex items-center justify-between border-t border-border">
-                    <Link to={`/tour/${pkg.slug}`}>
-                      <Button variant="outline" className="font-body">
+                  <div className="pt-6 mt-auto flex flex-col xl:flex-row items-center gap-3 border-t border-border">
+                    <Button asChild variant="outline" className="font-body w-full xl:flex-1">
+                      <Link to={`/tour/${pkg.slug}`}>
                         View Details
-                      </Button>
-                    </Link>
+                      </Link>
+                    </Button>
                     <Button
-                      className="bg-gradient-hero text-primary-foreground hover:opacity-90"
+                      className="bg-gradient-hero text-primary-foreground hover:opacity-90 w-full xl:flex-1"
                       onClick={() => {
                         setSelectedTour({ name: pkg.name, details: `${pkg.duration} / ${pkg.groupSize}` });
                         setIsBookingModalOpen(true);
@@ -170,9 +172,9 @@ const Pilgrimage = () => {
         </div>
       </section>
 
-      <BookingModal 
-        isOpen={isBookingModalOpen} 
-        onOpenChange={setIsBookingModalOpen} 
+      <BookingModal
+        isOpen={isBookingModalOpen}
+        onOpenChange={setIsBookingModalOpen}
         tourPackage={selectedTour?.name}
         tourDetails={selectedTour?.details}
       />

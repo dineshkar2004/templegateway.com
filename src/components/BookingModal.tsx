@@ -10,8 +10,30 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Calendar as CalendarIcon } from "lucide-react";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import { Loader2, Send, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+
+const SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbwXtlVfzBhhWjLy1EUdv2Fya5oTdW5mze6pAUAYsWK4J8-BYGq6xhllan-01qUWvemmkw/exec";
+
+const referralSources = [
+  "Google Search",
+  "Facebook",
+  "Instagram",
+  "YouTube",
+  "Friend / Family",
+  "WhatsApp",
+  "Temple Visit",
+  "Newspaper / Magazine",
+  "Other",
+];
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -20,7 +42,12 @@ interface BookingModalProps {
   tourDetails?: string;
 }
 
-const BookingModal = ({ isOpen, onOpenChange, tourPackage, tourDetails }: BookingModalProps) => {
+const BookingModal = ({
+  isOpen,
+  onOpenChange,
+  tourPackage,
+  tourDetails,
+}: BookingModalProps) => {
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -28,59 +55,13 @@ const BookingModal = ({ isOpen, onOpenChange, tourPackage, tourDetails }: Bookin
     travelers: "1",
     preferredDate: "",
     specialRequests: "",
+
+    // 👇 added internally (NO breaking change)
+    referralSource: "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      // Map the generic fields to the Google Apps Script expected fields
-      const payload = {
-        fullName: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
-        travelers: formData.travelers,
-        preferredDate: formData.preferredDate,
-        // Using special requests for both address and referral source as a fallback
-        // since the UI doesn't have these explicitly
-        address: formData.specialRequests || "Not Provided",
-        referralSource: "Website",
-        tourPackage: tourPackage || "General Inquiry",
-      };
-
-      const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwXtlVfzBhhWjLy1EUdv2Fya5oTdW5mze6pAUAYsWK4J8-BYGq6xhllan-01qUWvemmkw/exec"; // NOTE: Replace this URL
-
-      const response = await fetch(SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors", // This is required for Google Apps Script to not throw CORS errors
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      toast.success("Booking request sent successfully! We'll get back to you soon.");
-
-      // Reset form
-      setFormData({
-        fullName: "",
-        email: "",
-        phone: "",
-        travelers: "1",
-        preferredDate: "",
-        specialRequests: "",
-      });
-
-      onOpenChange(false);
-    } catch (error) {
-      toast.error("Something went wrong. Please try again later.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -88,124 +69,222 @@ const BookingModal = ({ isOpen, onOpenChange, tourPackage, tourDetails }: Bookin
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const handleSelectChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, referralSource: value }));
+  };
+
+  const resetForm = () => {
+    setFormData({
+      fullName: "",
+      email: "",
+      phone: "",
+      travelers: "1",
+      preferredDate: "",
+      specialRequests: "",
+      referralSource: "",
+    });
+    setIsSuccess(false);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    const payload = {
+      fullName: formData.fullName,
+      email: formData.email,
+      phone: formData.phone,
+      travelers: formData.travelers,
+      preferredDate: formData.preferredDate,
+
+      // 👇 mapped cleanly
+      address: formData.specialRequests || "Not Provided",
+      referralSource: formData.referralSource || "Website",
+      tourPackage: tourPackage || "General Inquiry",
+    };
+
+    try {
+      await fetch(SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      setIsSuccess(true);
+
+      toast.success(
+        `🎉 Booking request sent for ${tourPackage || "your trip"}`
+      );
+
+      setTimeout(() => {
+        onOpenChange(false);
+        resetForm();
+      }, 2500);
+    } catch (error) {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDialogChange = (open: boolean) => {
+    if (!open) resetForm();
+    onOpenChange(open);
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden bg-background border-none shadow-2xl rounded-2xl">
+    <Dialog open={isOpen} onOpenChange={handleDialogChange}>
+      <DialogContent className="sm:max-w-[520px] max-h-[90vh] overflow-y-auto p-0 rounded-2xl shadow-2xl">
         <div className="px-6 pt-6 pb-2">
-          <DialogHeader className="space-y-1">
-            <DialogTitle className="font-display text-2xl font-bold flex items-center justify-between">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold">
               Book Your Pilgrimage
             </DialogTitle>
             {(tourPackage || tourDetails) && (
-              <DialogDescription className="font-display font-medium text-foreground">
-                {tourPackage} {tourDetails && <span className="text-muted-foreground font-body font-normal">- {tourDetails}</span>}
+              <DialogDescription>
+                {tourPackage}{" "}
+                {tourDetails && <span>- {tourDetails}</span>}
               </DialogDescription>
             )}
           </DialogHeader>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-6 pb-6 pt-2 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <Label htmlFor="fullName" className="text-xs">Full Name *</Label>
-              <Input
-                id="fullName"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleChange}
-                placeholder="Your full name"
-                required
-                className="h-10 focus-visible:ring-saffron"
-              />
+        {isSuccess ? (
+          <div className="flex flex-col items-center py-10 space-y-4">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+              <CheckCircle2 className="text-green-600 w-10 h-10" />
             </div>
-            <div className="space-y-1">
-              <Label htmlFor="email" className="text-xs">Email Address *</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="your@email.com"
-                required
-                className="h-10 focus-visible:ring-saffron"
-              />
-            </div>
+            <h3 className="text-xl font-semibold">Request Submitted!</h3>
+            <p className="text-center text-muted-foreground">
+              We’ll contact you within 24 hours.
+            </p>
           </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <Label htmlFor="phone" className="text-xs">Phone Number *</Label>
-              <Input
-                id="phone"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                placeholder="+91 XXXXX XXXXX"
-                required
-                className="h-10 focus-visible:ring-saffron"
-              />
+        ) : (
+          <form onSubmit={handleSubmit} className="px-6 pb-6 space-y-4">
+            {/* Name + Email */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Full Name *</Label>
+                <Input
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div>
+                <Label>Email *</Label>
+                <Input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
             </div>
-            <div className="space-y-1">
-              <Label htmlFor="travelers" className="text-xs">Number of Travelers *</Label>
-              <Input
-                id="travelers"
-                name="travelers"
-                type="number"
-                min="1"
-                value={formData.travelers}
-                onChange={handleChange}
-                required
-                className="h-10 focus-visible:ring-saffron"
-              />
-            </div>
-          </div>
 
-          <div className="space-y-1">
-            <Label htmlFor="preferredDate" className="text-xs">Preferred Travel Date</Label>
-            <div className="relative">
+            {/* Phone + Travelers */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Phone *</Label>
+                <Input
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div>
+                <Label>Travellers *</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  name="travelers"
+                  value={formData.travelers}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Date */}
+            <div>
+              <Label>Preferred Date</Label>
               <Input
-                id="preferredDate"
-                name="preferredDate"
                 type="date"
+                name="preferredDate"
                 value={formData.preferredDate}
                 onChange={handleChange}
-                className="h-10 focus-visible:ring-saffron [color-scheme:light]"
               />
             </div>
-          </div>
 
-          <div className="space-y-1">
-            <Label htmlFor="specialRequests" className="text-xs">Special Requests</Label>
-            <Textarea
-              id="specialRequests"
-              name="specialRequests"
-              value={formData.specialRequests}
-              onChange={handleChange}
-              placeholder="Any special requirements, dietary restrictions, mobility needs, etc."
-              rows={3}
-              className="resize-none focus-visible:ring-saffron"
-            />
-          </div>
+            {/* Address (mapped from specialRequests) */}
+            <div>
+              <Label>Address / Notes *</Label>
+              <Textarea
+                name="specialRequests"
+                value={formData.specialRequests}
+                onChange={handleChange}
+                required
+                placeholder="Enter address or special requests"
+              />
+            </div>
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border mt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              className="px-6 rounded-md font-body flex-1"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-6 bg-gradient-hero text-white hover:opacity-90 rounded-md font-body flex-1 border-none"
-            >
-              {isSubmitting ? "Submitting..." : "Submit Request"}
-            </Button>
-          </div>
-        </form>
+            {/* Referral Source */}
+            <div>
+              <Label>How did you hear about us? *</Label>
+              <Select
+                value={formData.referralSource}
+                onValueChange={handleSelectChange}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select option" />
+                </SelectTrigger>
+                <SelectContent>
+                  {referralSources.map((src) => (
+                    <SelectItem key={src} value={src}>
+                      {src}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex gap-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => handleDialogChange(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-1 bg-gradient-hero text-white"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="animate-spin mr-2" size={18} />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <Send size={18} className="mr-2" />
+                    Submit Request
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );

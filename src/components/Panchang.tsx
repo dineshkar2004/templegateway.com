@@ -32,7 +32,7 @@ const LOCATIONS = [
 const Panchang = ({ date, latitude, longitude, compact = false }: PanchangProps) => {
   const [selectedDate, setSelectedDate] = useState<Date>(date || new Date());
   const [selectedLocation, setSelectedLocation] = useState(
-    (latitude && longitude) 
+    (latitude && longitude)
       ? { id: "custom", label: "Custom Location", labelTamil: "தனிப்பயன் இடம்", lat: latitude, lng: longitude }
       : LOCATIONS[0]
   );
@@ -166,7 +166,7 @@ const Panchang = ({ date, latitude, longitude, compact = false }: PanchangProps)
               Today
             </Button> */}
           </div>
-          <Select 
+          <Select
             value={selectedLocation.id !== "custom" ? selectedLocation.id : ""}
             onValueChange={(val) => {
               const loc = LOCATIONS.find(l => l.id === val);
@@ -363,23 +363,44 @@ const Panchang = ({ date, latitude, longitude, compact = false }: PanchangProps)
                 <AlertTriangle className="h-3 w-3" />
                 Inauspicious Time
               </h3>
-              <div className="p-3 rounded-lg bg-destructive/5 border border-destructive/20 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-destructive" />
-                  <span className="text-sm font-medium text-destructive">Rahu Kaal</span>
+
+              <div className="grid grid-cols-1 gap-2">
+
+                {/* Rahu Kaal */}
+                <div className="p-3 rounded-lg bg-destructive/5 border border-destructive/20 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-destructive" />
+                    <span className="text-sm font-medium text-destructive">Rahu Kaal</span>
+                  </div>
+                  <span className="text-sm font-semibold text-foreground">
+                    {northPanchang.rahu_kaal}
+                  </span>
                 </div>
-                <span className="text-sm font-semibold text-foreground">{northPanchang.rahu_kaal}</span>
+
+                {/* Yamagandam */}
+                <div className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/20 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-amber-600" />
+                    <span className="text-sm font-medium text-amber-600">Yamagandam</span>
+                  </div>
+                  <span className="text-sm font-semibold text-foreground">
+                    {northPanchang.yamagandam}
+                  </span>
+                </div>
+
+                {/* Gulika Kaal */}
+                <div className="p-3 rounded-lg bg-orange-500/5 border border-orange-500/20 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-orange-600" />
+                    <span className="text-sm font-medium text-orange-600">Gulika Kaal</span>
+                  </div>
+                  <span className="text-sm font-semibold text-foreground">
+                    {northPanchang.gulika_kaal}
+                  </span>
+                </div>
+
               </div>
             </div>
-
-            {northPanchang.auspicious && (
-              <div className="text-center p-3 rounded-lg bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-300/50 dark:border-green-700/30">
-                <Sparkles className="h-5 w-5 text-green-600 mx-auto mb-1" />
-                <p className="font-display text-green-700 dark:text-green-400 text-sm">Auspicious Day</p>
-              </div>
-            )}
-
-
           </CardContent>
         </Card>
       </div>

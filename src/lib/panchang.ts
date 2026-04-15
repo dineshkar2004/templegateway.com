@@ -237,6 +237,8 @@ export interface NorthIndianPanchangData {
   auspicious: boolean;
   specialDay: string | null;
   specialDayHindi: string | null;
+  yamagandam: string;
+  gulika_kaal: string;
 }
 
 // Get moon longitude in degrees (Spherical uses 'lon')
@@ -606,7 +608,13 @@ export function getNorthIndianPanchang(date: Date = new Date(), lat: number = 28
   const karanaData = calculateKarana(date);
   const monthData = getNorthIndianMonth(date);
   const sunTimes = calculateSunTimes(date, lat, lon);
+
   const rahuKaal = calculateRahuKaal(date, sunTimes.sunrise, sunTimes.sunset);
+
+  // ✅ FIX STARTS HERE
+  const yamagandam = calculateYamagandam(date);
+  const gulikaKaal = calculateGulikaKaal(date);
+  // ✅ FIX ENDS HERE
 
   const moonIllum = Astronomy.Illumination(Astronomy.Body.Moon, date);
   const moonPhaseData = getMoonPhaseName(moonIllum.phase_angle);
@@ -639,7 +647,13 @@ export function getNorthIndianPanchang(date: Date = new Date(), lat: number = 28
     moonPhase: moonPhaseData.english,
     moonPhaseHindi: moonPhaseHindi,
     moonIllumination: Math.round(moonIllum.phase_fraction * 100),
+
     rahu_kaal: rahuKaal,
+
+    // ✅ NEW VALUES
+    yamagandam,
+    gulika_kaal: gulikaKaal,
+
     vikramSamvat: date.getFullYear() + 57,
     auspicious: isAuspicious(tithiData.tithi, nakshatraData.nakshatra, yogaData.yoga),
     specialDay: specialDayData.english,

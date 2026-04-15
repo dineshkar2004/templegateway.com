@@ -181,6 +181,10 @@ export interface PanchangData {
   tithi: string;
   tithiTamil: string;
   tithiNumber: number;
+  tithiEndTime: Date | null;
+  tithiEndString: string | null;
+  nextTithi: string | null;
+  nextTithiTamil: string | null;
   nakshatra: string;
   nakshatraTamil: string;
   nakshatraNumber: number;
@@ -214,6 +218,10 @@ export interface NorthIndianPanchangData {
   tithi: string;
   tithiHindi: string;
   tithiNumber: number;
+  tithiEndTime: Date | null;
+  tithiEndString: string | null;
+  nextTithi: string | null;
+  nextTithiHindi: string | null;
   nakshatra: string;
   nakshatraHindi: string;
   nakshatraNumber: number;
@@ -241,16 +249,30 @@ export interface NorthIndianPanchangData {
   gulika_kaal: string;
 }
 
-// Get moon longitude in degrees (Spherical uses 'lon')
-function getMoonLongitude(date: Date): number {
-  const moonPos = Astronomy.EclipticGeoMoon(date);
-  return moonPos.lon;
+// Calculate Lahiri Ayanamsa (approximate formula)
+function getAyanamsa(date: Date): number {
+  // Lahiri Ayanamsa at J2000.0 (Jan 1, 2000, 12:00 UTC) is approx 23.853056 degrees
+  // Rate of precession is approx 50.290966 arcsec per year
+  const t = (date.getTime() - Date.UTC(2000, 0, 1, 12, 0, 0)) / (1000 * 60 * 60 * 24 * 365.25);
+  return 23.853056 + t * (50.290966 / 3600);
 }
 
-// Get sun longitude in degrees (EclipticCoordinates uses 'elon')
+// Get moon longitude in degrees (Sidereal / Nirayana)
+function getMoonLongitude(date: Date): number {
+  const moonPos = Astronomy.EclipticGeoMoon(date);
+  const ayanamsa = getAyanamsa(date);
+  let lon = moonPos.lon - ayanamsa;
+  if (lon < 0) lon += 360;
+  return lon;
+}
+
+// Get sun longitude in degrees (Sidereal / Nirayana)
 function getSunLongitude(date: Date): number {
   const sunPos = Astronomy.SunPosition(date);
-  return sunPos.elon;
+  const ayanamsa = getAyanamsa(date);
+  let lon = sunPos.elon - ayanamsa;
+  if (lon < 0) lon += 360;
+  return lon;
 }
 
 // Calculate Tithi (lunar day)
@@ -291,8 +313,7 @@ function calculateYoga(date: Date): { yoga: string; yogaTamil: string } {
   const moonLong = getMoonLongitude(date);
   const sunLong = getSunLongitude(date);
 
-  let sum = moonLong + sunLong;
-  if (sum >= 360) sum -= 360;
+  let sum = (moonLong + sunLong) % 360;
 
   const yogaNumber = Math.floor(sum / (360 / 27)) + 1;
   const index = (yogaNumber - 1) % 27;
@@ -333,25 +354,61 @@ function getTamilMonth(date: Date): { month: string; monthTamil: string } {
 }
 
 // Calculate sunrise and sunset for Tamil Nadu (default: Chennai)
-function calculateSunTimes(date: Date, lat: number, lon: number): { sunrise: string; sunset: string } {
+function calculateSunTimes(date: Date, lat: number, lon: number): { sunrise: string; sunset: string, sunriseDate: Date | null, sunsetDate: Date | null } {
   const observer = new Astronomy.Observer(lat, lon, 0);
+  
+  // Use local midnight to search today's sunrise consistently
+  const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
 
   try {
-    const sunriseTime = Astronomy.SearchRiseSet(Astronomy.Body.Sun, observer, +1, date, 1);
-    const sunsetTime = Astronomy.SearchRiseSet(Astronomy.Body.Sun, observer, -1, date, 1);
+    const sunriseTime = Astronomy.SearchRiseSet(Astronomy.Body.Sun, observer, +1, startOfDay, 1);
+    const sunsetTime = Astronomy.SearchRiseSet(Astronomy.Body.Sun, observer, -1, startOfDay, 1);
 
     const formatTime = (d: Date | null): string => {
       if (!d) return '--:--';
-      return d.toLocaleTimeString('ta-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+      return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
     };
 
     return {
       sunrise: formatTime(sunriseTime?.date || null),
-      sunset: formatTime(sunsetTime?.date || null)
+      sunset: formatTime(sunsetTime?.date || null),
+      sunriseDate: sunriseTime?.date || null,
+      sunsetDate: sunsetTime?.date || null
     };
   } catch {
-    return { sunrise: '06:00 AM', sunset: '06:30 PM' };
+    return { sunrise: '06:00 AM', sunset: '06:30 PM', sunriseDate: null, sunsetDate: null };
   }
+}
+
+// Search forward for the time the current Tithi ends
+function getTithiEndTime(startDate: Date, currentTithiNumber: number): Date {
+  let time = startDate.getTime();
+  let step = 30 * 60 * 1000; // 30 mins
+  
+  while (true) {
+    time += step;
+    let newTithi = calculateTithi(new Date(time));
+    if (newTithi.number !== currentTithiNumber) {
+      break;
+    }
+    // Safety break
+    if (time - startDate.getTime() > 48 * 60 * 60 * 1000) break;
+  }
+  
+  let start = time - step;
+  let end = time;
+  
+  while (end - start > 60 * 1000) { // 1 min precision
+    let mid = Math.floor((start + end) / 2);
+    let newTithi = calculateTithi(new Date(mid));
+    if (newTithi.number === currentTithiNumber) {
+      start = mid;
+    } else {
+      end = mid;
+    }
+  }
+  
+  return new Date(end);
 }
 
 // Calculate Rahu Kaal (important in Tamil culture)
@@ -513,21 +570,35 @@ function getTamilYear(date: Date): { year: string; yearTamil: string } {
 
 // Main function to get Panchang data (default location: Chennai, Tamil Nadu)
 export function getPanchang(date: Date = new Date(), lat: number = 13.0827, lon: number = 80.2707): PanchangData {
-  const tithiData = calculateTithi(date);
-  const nakshatraData = calculateNakshatra(date);
-  const yogaData = calculateYoga(date);
-  const karanaData = calculateKarana(date);
-  const tamilMonthData = getTamilMonth(date);
-  const tamilYearData = getTamilYear(date);
   const sunTimes = calculateSunTimes(date, lat, lon);
-  const rahuKaal = calculateRahuKaal(date, sunTimes.sunrise, sunTimes.sunset);
-  const yamagandam = calculateYamagandam(date);
-  const gulikaKaal = calculateGulikaKaal(date);
+  
+  // Calculate based on sunrise time
+  let dayStartDate = sunTimes.sunriseDate;
+  if (!dayStartDate) {
+    dayStartDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 6, 0, 0);
+  }
 
-  const moonIllum = Astronomy.Illumination(Astronomy.Body.Moon, date);
+  const tithiData = calculateTithi(dayStartDate);
+  const tithiEndTime = getTithiEndTime(dayStartDate, tithiData.number);
+  const nextTithiData = calculateTithi(new Date(tithiEndTime.getTime() + 60000));
+  
+  let isNextDay = tithiEndTime.getDate() !== dayStartDate.getDate();
+  let timeString = tithiEndTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+  let tithiEndString = isNextDay ? `${timeString} (+1)` : timeString;
+
+  const nakshatraData = calculateNakshatra(dayStartDate);
+  const yogaData = calculateYoga(dayStartDate);
+  const karanaData = calculateKarana(dayStartDate);
+  const tamilMonthData = getTamilMonth(dayStartDate);
+  const tamilYearData = getTamilYear(dayStartDate);
+  const rahuKaal = calculateRahuKaal(dayStartDate, sunTimes.sunrise, sunTimes.sunset);
+  const yamagandam = calculateYamagandam(dayStartDate);
+  const gulikaKaal = calculateGulikaKaal(dayStartDate);
+
+  const moonIllum = Astronomy.Illumination(Astronomy.Body.Moon, dayStartDate);
   const moonPhaseData = getMoonPhaseName(moonIllum.phase_angle);
 
-  const dayOfWeek = date.getDay();
+  const dayOfWeek = dayStartDate.getDay();
   const specialDayData = getSpecialDay(tithiData.tithi, tithiData.paksha, nakshatraData.nakshatra, tamilMonthData.month, dayOfWeek);
 
   return {
@@ -535,6 +606,10 @@ export function getPanchang(date: Date = new Date(), lat: number = 13.0827, lon:
     tithi: tithiData.tithi,
     tithiTamil: tithiData.tithiTamil,
     tithiNumber: tithiData.number,
+    tithiEndTime,
+    tithiEndString,
+    nextTithi: nextTithiData.tithi,
+    nextTithiTamil: nextTithiData.tithiTamil,
     nakshatra: nakshatraData.nakshatra,
     nakshatraTamil: nakshatraData.nakshatraTamil,
     nakshatraNumber: nakshatraData.number,
@@ -602,33 +677,51 @@ function getNorthIndianSpecialDay(tithi: string, paksha: string, nakshatra: stri
 
 // North Indian Panchang (default location: Delhi)
 export function getNorthIndianPanchang(date: Date = new Date(), lat: number = 28.6139, lon: number = 77.2090): NorthIndianPanchangData {
-  const tithiData = calculateTithi(date);
-  const nakshatraData = calculateNakshatra(date);
-  const yogaData = calculateYoga(date);
-  const karanaData = calculateKarana(date);
-  const monthData = getNorthIndianMonth(date);
   const sunTimes = calculateSunTimes(date, lat, lon);
 
-  const rahuKaal = calculateRahuKaal(date, sunTimes.sunrise, sunTimes.sunset);
+  // Calculate based on sunrise time
+  let dayStartDate = sunTimes.sunriseDate;
+  if (!dayStartDate) {
+    dayStartDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 6, 0, 0);
+  }
+
+  const tithiData = calculateTithi(dayStartDate);
+  const tithiEndTime = getTithiEndTime(dayStartDate, tithiData.number);
+  const nextTithiData = calculateTithi(new Date(tithiEndTime.getTime() + 60000));
+  
+  let isNextDay = tithiEndTime.getDate() !== dayStartDate.getDate();
+  let timeString = tithiEndTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+  let tithiEndString = isNextDay ? `${timeString} (+1)` : timeString;
+
+  const nakshatraData = calculateNakshatra(dayStartDate);
+  const yogaData = calculateYoga(dayStartDate);
+  const karanaData = calculateKarana(dayStartDate);
+  const monthData = getNorthIndianMonth(dayStartDate);
+
+  const rahuKaal = calculateRahuKaal(dayStartDate, sunTimes.sunrise, sunTimes.sunset);
 
   // ✅ FIX STARTS HERE
-  const yamagandam = calculateYamagandam(date);
-  const gulikaKaal = calculateGulikaKaal(date);
+  const yamagandam = calculateYamagandam(dayStartDate);
+  const gulikaKaal = calculateGulikaKaal(dayStartDate);
   // ✅ FIX ENDS HERE
 
-  const moonIllum = Astronomy.Illumination(Astronomy.Body.Moon, date);
+  const moonIllum = Astronomy.Illumination(Astronomy.Body.Moon, dayStartDate);
   const moonPhaseData = getMoonPhaseName(moonIllum.phase_angle);
   const moonPhaseHindi = getMoonPhaseHindi(moonIllum.phase_angle);
 
   const specialDayData = getNorthIndianSpecialDay(tithiData.tithi, tithiData.paksha, nakshatraData.nakshatra);
 
-  const dayOfWeek = date.getDay();
+  const dayOfWeek = dayStartDate.getDay();
 
   return {
     date,
     tithi: tithiData.tithi,
     tithiHindi: TITHIS_HINDI[(tithiData.number - 1) % 30] || TITHIS_HINDI[0],
     tithiNumber: tithiData.number,
+    tithiEndTime,
+    tithiEndString,
+    nextTithi: nextTithiData.tithi,
+    nextTithiHindi: TITHIS_HINDI[(nextTithiData.number - 1) % 30] || TITHIS_HINDI[0],
     nakshatra: nakshatraData.nakshatra,
     nakshatraHindi: NAKSHATRAS_HINDI[(nakshatraData.number - 1) % 27] || NAKSHATRAS_HINDI[0],
     nakshatraNumber: nakshatraData.number,

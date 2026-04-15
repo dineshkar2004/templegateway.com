@@ -218,7 +218,15 @@ const Panchang = ({ date, latitude, longitude, compact = false }: PanchangProps)
             )}
 
             <div className="grid grid-cols-2 gap-3">
-              <PanchangItem icon={<Star className="h-4 w-4" />} label="திதி" labelEnglish="Tithi" value={tamilPanchang.tithiTamil} valueEnglish={tamilPanchang.tithi} subValue={tamilPanchang.pakshaTamil} color="saffron" />
+              <PanchangItem 
+                icon={<Star className="h-4 w-4" />} 
+                label="திதி" 
+                labelEnglish="Tithi" 
+                value={tamilPanchang.tithiEndTime ? `${tamilPanchang.tithiTamil} (${tamilPanchang.tithiEndString} வரை) → ${tamilPanchang.nextTithiTamil}` : tamilPanchang.tithiTamil} 
+                valueEnglish={tamilPanchang.tithiEndTime ? `${tamilPanchang.tithi} (Till ${tamilPanchang.tithiEndString}) → ${tamilPanchang.nextTithi}` : tamilPanchang.tithi} 
+                subValue={tamilPanchang.pakshaTamil} 
+                color="saffron" 
+              />
               <PanchangItem icon={<Moon className="h-4 w-4" />} label="நட்சத்திரம்" labelEnglish="Nakshatra" value={tamilPanchang.nakshatraTamil} valueEnglish={tamilPanchang.nakshatra} color="primary" />
               <PanchangItem icon={<Sparkles className="h-4 w-4" />} label="யோகம்" labelEnglish="Yoga" value={tamilPanchang.yogaTamil} valueEnglish={tamilPanchang.yoga} color="temple-gold" />
               <PanchangItem icon={<Calendar className="h-4 w-4" />} label="கரணம்" labelEnglish="Karana" value={tamilPanchang.karanaTamil} valueEnglish={tamilPanchang.karana} color="muted" />
@@ -315,7 +323,14 @@ const Panchang = ({ date, latitude, longitude, compact = false }: PanchangProps)
             )}
 
             <div className="grid grid-cols-2 gap-3">
-              <NorthPanchangItem icon={<Star className="h-4 w-4" />} label="Tithi" labelEnglish="" value={northPanchang.tithi} subValue={northPanchang.paksha} color="orange" />
+              <NorthPanchangItem 
+                icon={<Star className="h-4 w-4" />} 
+                label="Tithi" 
+                labelEnglish="" 
+                value={northPanchang.tithiEndTime ? `${northPanchang.tithi} (Till ${northPanchang.tithiEndString}) → ${northPanchang.nextTithi}` : northPanchang.tithi} 
+                subValue={northPanchang.paksha} 
+                color="orange" 
+              />
               <NorthPanchangItem icon={<Moon className="h-4 w-4" />} label="Nakshatra" labelEnglish="" value={northPanchang.nakshatra} color="red" />
               <NorthPanchangItem icon={<Sparkles className="h-4 w-4" />} label="Yoga" labelEnglish="" value={northPanchang.yoga} color="amber" />
               <NorthPanchangItem icon={<Calendar className="h-4 w-4" />} label="Karana" labelEnglish="" value={northPanchang.karana} color="muted" />

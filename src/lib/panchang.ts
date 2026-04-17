@@ -82,8 +82,8 @@ const VARAS = [
   'புதன்கிழமை', 'வியாழக்கிழமை', 'வெள்ளிக்கிழமை', 'சனிக்கிழமை'
 ];
 const VARAS_ENGLISH = [
-  'Nyayiru', 'Thingal', 'Sevvai',
-  'Budhan', 'Viyazhan', 'Velli', 'Sani'
+  'Sunday', 'Monday', 'Tuesday',
+  'Wednesday', 'Thursday', 'Friday', 'Saturday'
 ];
 
 // Tamil months (Solar calendar - used in Tamil Nadu)
@@ -188,10 +188,22 @@ export interface PanchangData {
   nakshatra: string;
   nakshatraTamil: string;
   nakshatraNumber: number;
+  nakshatraEndTime: Date | null;
+  nakshatraEndString: string | null;
+  nextNakshatra: string | null;
+  nextNakshatraTamil: string | null;
   yoga: string;
   yogaTamil: string;
+  yogaEndTime: Date | null;
+  yogaEndString: string | null;
+  nextYoga: string | null;
+  nextYogaTamil: string | null;
   karana: string;
   karanaTamil: string;
+  karanaEndTime: Date | null;
+  karanaEndString: string | null;
+  nextKarana: string | null;
+  nextKaranaTamil: string | null;
   paksha: string;
   pakshaTamil: string;
   vara: string;
@@ -225,10 +237,22 @@ export interface NorthIndianPanchangData {
   nakshatra: string;
   nakshatraHindi: string;
   nakshatraNumber: number;
+  nakshatraEndTime: Date | null;
+  nakshatraEndString: string | null;
+  nextNakshatra: string | null;
+  nextNakshatraHindi: string | null;
   yoga: string;
   yogaHindi: string;
+  yogaEndTime: Date | null;
+  yogaEndString: string | null;
+  nextYoga: string | null;
+  nextYogaHindi: string | null;
   karana: string;
   karanaHindi: string;
+  karanaEndTime: Date | null;
+  karanaEndString: string | null;
+  nextKarana: string | null;
+  nextKaranaHindi: string | null;
   paksha: string;
   pakshaHindi: string;
   vara: string;
@@ -309,7 +333,7 @@ function calculateNakshatra(date: Date): { nakshatra: string; nakshatraTamil: st
 }
 
 // Calculate Yoga
-function calculateYoga(date: Date): { yoga: string; yogaTamil: string } {
+function calculateYoga(date: Date): { yoga: string; yogaTamil: string; number: number } {
   const moonLong = getMoonLongitude(date);
   const sunLong = getSunLongitude(date);
 
@@ -320,23 +344,26 @@ function calculateYoga(date: Date): { yoga: string; yogaTamil: string } {
 
   return {
     yoga: YOGAS_ENGLISH[index],
-    yogaTamil: YOGAS[index]
+    yogaTamil: YOGAS[index],
+    number: yogaNumber
   };
 }
 
 // Calculate Karana
-function calculateKarana(date: Date): { karana: string; karanaTamil: string } {
+function calculateKarana(date: Date): { karana: string; karanaTamil: string; number: number } {
   const moonLong = getMoonLongitude(date);
   const sunLong = getSunLongitude(date);
 
   let diff = moonLong - sunLong;
   if (diff < 0) diff += 360;
 
+  const karanaTrueNumber = Math.floor(diff / 6) + 1;
   const karanaNumber = Math.floor(diff / 6) % 11;
 
   return {
     karana: KARANAS_ENGLISH[karanaNumber],
-    karanaTamil: KARANAS[karanaNumber]
+    karanaTamil: KARANAS[karanaNumber],
+    number: karanaTrueNumber
   };
 }
 
@@ -378,6 +405,28 @@ function calculateSunTimes(date: Date, lat: number, lon: number): { sunrise: str
   } catch {
     return { sunrise: '06:00 AM', sunset: '06:30 PM', sunriseDate: null, sunsetDate: null };
   }
+}
+
+function getGenericEndTime(startDate: Date, currentNumber: number, calculateFn: (d: Date) => { number: number }): Date {
+  let time = startDate.getTime();
+  let step = 30 * 60 * 1000;
+  
+  while (true) {
+    time += step;
+    if (calculateFn(new Date(time)).number !== currentNumber) break;
+    if (time - startDate.getTime() > 48 * 60 * 60 * 1000) break;
+  }
+  
+  let start = time - step;
+  let end = time;
+  
+  while (end - start > 60 * 1000) {
+    let mid = Math.floor((start + end) / 2);
+    if (calculateFn(new Date(mid)).number === currentNumber) start = mid;
+    else end = mid;
+  }
+  
+  return new Date(end);
 }
 
 // Search forward for the time the current Tithi ends
@@ -587,8 +636,26 @@ export function getPanchang(date: Date = new Date(), lat: number = 13.0827, lon:
   let tithiEndString = isNextDay ? `${timeString} (+1)` : timeString;
 
   const nakshatraData = calculateNakshatra(dayStartDate);
+  const nakshatraEndTime = getGenericEndTime(dayStartDate, nakshatraData.number, calculateNakshatra);
+  const nextNakshatraData = calculateNakshatra(new Date(nakshatraEndTime.getTime() + 60000));
+  const isNakNextDay = nakshatraEndTime.getDate() !== dayStartDate.getDate();
+  const nakTimeString = nakshatraEndTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+  const nakshatraEndString = isNakNextDay ? `${nakTimeString} (+1)` : nakTimeString;
+
   const yogaData = calculateYoga(dayStartDate);
+  const yogaEndTime = getGenericEndTime(dayStartDate, yogaData.number, calculateYoga);
+  const nextYogaData = calculateYoga(new Date(yogaEndTime.getTime() + 60000));
+  const isYogaNextDay = yogaEndTime.getDate() !== dayStartDate.getDate();
+  const yogaTimeString = yogaEndTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+  const yogaEndString = isYogaNextDay ? `${yogaTimeString} (+1)` : yogaTimeString;
+
   const karanaData = calculateKarana(dayStartDate);
+  const karanaEndTime = getGenericEndTime(dayStartDate, karanaData.number, calculateKarana);
+  const nextKaranaData = calculateKarana(new Date(karanaEndTime.getTime() + 60000));
+  const isKarNextDay = karanaEndTime.getDate() !== dayStartDate.getDate();
+  const karTimeString = karanaEndTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+  const karanaEndString = isKarNextDay ? `${karTimeString} (+1)` : karTimeString;
+
   const tamilMonthData = getTamilMonth(dayStartDate);
   const tamilYearData = getTamilYear(dayStartDate);
   const rahuKaal = calculateRahuKaal(dayStartDate, sunTimes.sunrise, sunTimes.sunset);
@@ -613,10 +680,22 @@ export function getPanchang(date: Date = new Date(), lat: number = 13.0827, lon:
     nakshatra: nakshatraData.nakshatra,
     nakshatraTamil: nakshatraData.nakshatraTamil,
     nakshatraNumber: nakshatraData.number,
+    nakshatraEndTime,
+    nakshatraEndString,
+    nextNakshatra: nextNakshatraData.nakshatra,
+    nextNakshatraTamil: nextNakshatraData.nakshatraTamil,
     yoga: yogaData.yoga,
     yogaTamil: yogaData.yogaTamil,
+    yogaEndTime,
+    yogaEndString,
+    nextYoga: nextYogaData.yoga,
+    nextYogaTamil: nextYogaData.yogaTamil,
     karana: karanaData.karana,
     karanaTamil: karanaData.karanaTamil,
+    karanaEndTime,
+    karanaEndString,
+    nextKarana: nextKaranaData.karana,
+    nextKaranaTamil: nextKaranaData.karanaTamil,
     paksha: tithiData.paksha,
     pakshaTamil: tithiData.pakshaTamil,
     vara: VARAS_ENGLISH[dayOfWeek],
@@ -694,8 +773,26 @@ export function getNorthIndianPanchang(date: Date = new Date(), lat: number = 28
   let tithiEndString = isNextDay ? `${timeString} (+1)` : timeString;
 
   const nakshatraData = calculateNakshatra(dayStartDate);
+  const nakshatraEndTime = getGenericEndTime(dayStartDate, nakshatraData.number, calculateNakshatra);
+  const nextNakshatraData = calculateNakshatra(new Date(nakshatraEndTime.getTime() + 60000));
+  const isNakNextDay = nakshatraEndTime.getDate() !== dayStartDate.getDate();
+  const nakTimeString = nakshatraEndTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+  const nakshatraEndString = isNakNextDay ? `${nakTimeString} (+1)` : nakTimeString;
+
   const yogaData = calculateYoga(dayStartDate);
+  const yogaEndTime = getGenericEndTime(dayStartDate, yogaData.number, calculateYoga);
+  const nextYogaData = calculateYoga(new Date(yogaEndTime.getTime() + 60000));
+  const isYogaNextDay = yogaEndTime.getDate() !== dayStartDate.getDate();
+  const yogaTimeString = yogaEndTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+  const yogaEndString = isYogaNextDay ? `${yogaTimeString} (+1)` : yogaTimeString;
+
   const karanaData = calculateKarana(dayStartDate);
+  const karanaEndTime = getGenericEndTime(dayStartDate, karanaData.number, calculateKarana);
+  const nextKaranaData = calculateKarana(new Date(karanaEndTime.getTime() + 60000));
+  const isKarNextDay = karanaEndTime.getDate() !== dayStartDate.getDate();
+  const karTimeString = karanaEndTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+  const karanaEndString = isKarNextDay ? `${karTimeString} (+1)` : karTimeString;
+
   const monthData = getNorthIndianMonth(dayStartDate);
 
   const rahuKaal = calculateRahuKaal(dayStartDate, sunTimes.sunrise, sunTimes.sunset);
@@ -725,10 +822,22 @@ export function getNorthIndianPanchang(date: Date = new Date(), lat: number = 28
     nakshatra: nakshatraData.nakshatra,
     nakshatraHindi: NAKSHATRAS_HINDI[(nakshatraData.number - 1) % 27] || NAKSHATRAS_HINDI[0],
     nakshatraNumber: nakshatraData.number,
+    nakshatraEndTime,
+    nakshatraEndString,
+    nextNakshatra: nextNakshatraData.nakshatra,
+    nextNakshatraHindi: NAKSHATRAS_HINDI[(nextNakshatraData.number - 1) % 27] || NAKSHATRAS_HINDI[0],
     yoga: yogaData.yoga,
     yogaHindi: YOGAS_HINDI[YOGAS_ENGLISH.indexOf(yogaData.yoga)] || yogaData.yoga,
+    yogaEndTime,
+    yogaEndString,
+    nextYoga: nextYogaData.yoga,
+    nextYogaHindi: YOGAS_HINDI[YOGAS_ENGLISH.indexOf(nextYogaData.yoga)] || nextYogaData.yoga,
     karana: karanaData.karana,
     karanaHindi: KARANAS_HINDI[KARANAS_ENGLISH.indexOf(karanaData.karana)] || karanaData.karana,
+    karanaEndTime,
+    karanaEndString,
+    nextKarana: nextKaranaData.karana,
+    nextKaranaHindi: KARANAS_HINDI[KARANAS_ENGLISH.indexOf(nextKaranaData.karana)] || nextKaranaData.karana,
     paksha: tithiData.paksha,
     pakshaHindi: PAKSHAS_HINDI[tithiData.paksha === 'Sukla Paksham' ? 0 : 1],
     vara: VARAS_ENGLISH[dayOfWeek],

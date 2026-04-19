@@ -99,12 +99,13 @@ const Index = () => {
         {/* Background Video */}
         <div className="absolute inset-0 w-full h-full">
           <div className="absolute inset-0 bg-black/40 z-10" />
-          <iframe
+          <video
             className="w-full h-full object-cover scale-[1.35] pointer-events-none"
-            src="https://www.youtube.com/embed/U2OyyvVb9Dw?autoplay=1&mute=1&controls=0&loop=1&playlist=U2OyyvVb9Dw&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1"
-            title="Temple Gateway - Spiritual Journey"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
+            src="/videos/Home%20Page%20Video.webm"
+            autoPlay
+            loop
+            muted
+            playsInline
           />
         </div>
 

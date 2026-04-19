@@ -112,7 +112,7 @@ const Pilgrimage = () => {
                     </div>
                   </div>
 
-                  <div className="pt-6 mt-auto flex flex-col xl:flex-row items-center gap-3 border-t border-border">
+                  <div className="pt-6 mt-auto flex flex-col xl:flex-row items-center gap-3">
                     <Button asChild variant="outline" className="font-body w-full xl:flex-1">
                       <Link to={`/tour/${pkg.slug}`}>
                         View Details

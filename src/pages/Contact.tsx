@@ -61,8 +61,8 @@ const Contact = () => {
 
   return (
     <Layout>
-      <SEO 
-        title="Contact Us" 
+      <SEO
+        title="Contact Us"
         description="Contact Temple Gateway for custom yatra bookings, pilgrimage planning, and spiritual guidance. Reach out to our expert team for inquiries about our temple tours."
       />
       {/* Hero Section */}
@@ -235,7 +235,7 @@ const Contact = () => {
                     {
                       icon: Mail,
                       title: "Email Address",
-                      content: "ta.vengat@gmail.com",
+                      content: "contact.templegateway@gmail.com",
                     },
                     {
                       icon: Clock,
@@ -271,7 +271,7 @@ const Contact = () => {
 
       {/* Map Placeholder */}
       {/* Map Placeholder */}
-      <section className="h-80 bg-muted relative">
+      {/* <section className="h-80 bg-muted relative">
         <div className="absolute inset-0 flex items-center justify-center">
           <RevealOnScroll>
             <div className="text-center space-y-4 max-w-2xl px-4">
@@ -286,7 +286,7 @@ const Contact = () => {
             </div>
           </RevealOnScroll>
         </div>
-      </section>
+      </section> */}
     </Layout>
   );
 };

@@ -184,8 +184,8 @@ const Contact = () => {
                         url: "https://www.facebook.com/share/1AZr4aoba5/",
                       },
                       { name: "Instagram", icon: Instagram, url: "https://www.instagram.com/templegateway?utm_source=qr&igsh=cTRhcWRscjczMzlk" },
-                      { name: "Twitter", icon: Twitter, url: "#" },
-                      { name: "YouTube", icon: Youtube, url: "#" },
+                      // { name: "Twitter", icon: Twitter, url: "#" },
+                      // { name: "YouTube", icon: Youtube, url: "#" },
                     ].map((social) => (
                       <a
                         key={social.name}

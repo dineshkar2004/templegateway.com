@@ -181,9 +181,9 @@ const Contact = () => {
                       {
                         name: "Facebook",
                         icon: Facebook,
-                        url: "https://www.facebook.com/templeadvisor/",
+                        url: "https://www.facebook.com/share/1AZr4aoba5/",
                       },
-                      { name: "Instagram", icon: Instagram, url: "#" },
+                      { name: "Instagram", icon: Instagram, url: "https://www.instagram.com/templegateway?utm_source=qr&igsh=cTRhcWRscjczMzlk" },
                       { name: "Twitter", icon: Twitter, url: "#" },
                       { name: "YouTube", icon: Youtube, url: "#" },
                     ].map((social) => (

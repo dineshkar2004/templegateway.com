@@ -23,7 +23,8 @@ export function useCMSTemples() {
     queryKey: queryKeys.temples,
     queryFn: async (): Promise<Temple[]> => {
       try {
-        return await fetchTemples();
+        const data = await fetchTemples();
+        return data.sort((a, b) => a.name.localeCompare(b.name));
       } catch (err) {
         console.warn('Failed to fetch from backend proxy:', err);
         return [];

@@ -118,6 +118,7 @@ export async function fetchTemples() {
       return {
         id: item._id || item.data?._id || Date.now(),
         name: fields.name || '',
+        religion: fields.religion || '',
         deity: fields.deity || '',
         deityName: fields.deityName || '',
         otherDeity: fields.otherDeity || '',
@@ -178,6 +179,7 @@ export async function fetchTempleById(idOrSlug: string | number) {
     return {
       id: item._id || item.data?._id || Date.now(),
       name: fields.name || '',
+      religion: fields.religion || '',
       deity: fields.deity || '',
       deityName: fields.deityName || '',
       otherDeity: fields.otherDeity || '',

@@ -1,6 +1,7 @@
 export interface Temple {
   id: number;
   name: string;
+  religion?: string;
   deity: string;
   deityName: string;
   otherDeity: string;
